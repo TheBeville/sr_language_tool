@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:sr_language_tool/models/database.dart';
+import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/pages/home_view.dart';
 import 'package:sr_language_tool/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  final database = AppDatabase();
-
+  setupLocator();
   runApp(const MyApp());
 }
 
@@ -17,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: darkTheme,
       home: const HomeView(),
     );
