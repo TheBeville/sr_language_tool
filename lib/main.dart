@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/pages/home_view.dart';
 import 'package:sr_language_tool/theme.dart';
+import 'package:sr_language_tool/services/database_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setupLocator();
+  DatabaseService().initialiseDB();
   runApp(const MyApp());
 }
 
@@ -17,7 +19,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: darkTheme,
-      home: const HomeView(),
+      home: HomeView(),
     );
   }
 }
