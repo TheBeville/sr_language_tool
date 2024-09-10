@@ -1,19 +1,47 @@
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/models/database.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 class DatabaseService {
   final database = locator.get<AppDatabase>();
 
-  // @@@@@@@@@@@@@@@@@@@@ \\
-  // INITIALISATION STUFF \\
-  // @@@@@@@@@@@@@@@@@@@@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ \\
+  // @ CAUTION: DELETES DATABASE FILE @ \\
+  // @  USE ONLY WHEN IT'S NECESSARY  @ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ \\
+  Future<void> clearData() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final dbPath =
+          '${directory.path}/app_database.sqlite'; // Replace with your actual database name if different
+      final dbFile = File(dbPath);
+
+      if (await dbFile.exists()) {
+        await dbFile.delete();
+        print('Database file deleted');
+      } else {
+        print('Database file not found');
+      }
+    } catch (e) {
+      print('Error deleting database: $e');
+    }
+  }
+
+  // @@@@@@@@@@@@@@@@@@@@@@@@ \\
+  // @ INITIALISATION STUFF @ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@@ \\
 
   void initialiseDB() async {
     final List<Card> cardlist = await getAllCards();
+    final List<Language> langList = await getAllLanguages();
+    final List<Category> catList = await getAllCategories();
 
     cardlist.isEmpty ? isEmptyFunctions() : print('database loaded');
 
     print(cardlist);
+    print(langList);
+    print(catList);
   }
 
   void isEmptyFunctions() {
@@ -43,12 +71,21 @@ class DatabaseService {
     );
   }
 
-  // @@@@@@@@@@@@@@@@@@ \\
-  // CARD-RELATED STUFF \\
-  // @@@@@@@@@@@@@@@@@@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@ \\
+  // @ CARD-RELATED STUFF @ \\
+  // @@@@@@@@@@@@@@@@@@@@@@ \\
 
   Future<List<Card>> getAllCards() async {
     return await database.select(database.cards).get();
+  }
+
+  Future<List<Card>> getCardsOfLang(language) async {
+    final int? langID = await getLangID(language);
+    final int langIDOrDefault = langID ?? 1;
+
+    return await (database.select(database.cards)
+          ..where((c) => c.language.equals(langIDOrDefault)))
+        .get();
   }
 
   void createCard(language, category, frontContent, revealContent) async {
@@ -70,17 +107,19 @@ class DatabaseService {
         );
   }
 
-  void deleteCard(int id) {
-    database.delete(database.cards).where((card) => card.id.equals(id));
+  Future deleteCard(int id) {
+    return (database.delete(database.cards)
+          ..where((card) => card.id.equals(id)))
+        .go();
   }
 
   void updateCard(Card card) {
     database.update(database.cards).replace(card);
   }
 
-  // @@@@@@@@@@@@@@@@@@@ \\
-  // LANGUAGE CAT. STUFF \\
-  // @@@@@@@@@@@@@@@@@@@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@ \\
+  // @ LANGUAGE CAT. STUFF @ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@ \\
 
   Future<List<Language>> getAllLanguages() async {
     return await database.select(database.languages).get();
@@ -101,15 +140,15 @@ class DatabaseService {
         );
   }
 
-  void deleteLang(int id) {
-    database
-        .delete(database.languages)
-        .where((language) => language.id.equals(id));
+  Future deleteLang(int id) {
+    return (database.delete(database.languages)
+          ..where((language) => language.id.equals(id)))
+        .go();
   }
 
-  // @@@@@@@@@@@@@@@@@@@ \\
-  // WORD CATEGORY STUFF \\
-  // @@@@@@@@@@@@@@@@@@@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@ \\
+  // @ WORD CATEGORY STUFF @ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@ \\
 
   Future<List<Category>> getAllCategories() async {
     return await database.select(database.categories).get();
@@ -130,9 +169,9 @@ class DatabaseService {
         );
   }
 
-  void deleteCategory(int id) {
-    database
-        .delete(database.categories)
-        .where((category) => category.id.equals(id));
+  Future deleteCategory(int id) {
+    return (database.delete(database.categories)
+          ..where((category) => category.id.equals(id)))
+        .go();
   }
 }

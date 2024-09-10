@@ -5,7 +5,9 @@ import 'package:sr_language_tool/models/database.dart';
 import 'package:sr_language_tool/services/database_service.dart';
 
 class CreateCardPage extends StatelessWidget {
-  CreateCardPage({super.key});
+  CreateCardPage({this.defaultLanguage, super.key});
+
+  final String? defaultLanguage;
 
   final database = locator.get<database_model.AppDatabase>();
   final dBService = locator.get<DatabaseService>();
@@ -17,7 +19,7 @@ class CreateCardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Future<List<Language>> allLanguages = dBService.getAllLanguages();
+    // final Future<List<Language>> allLanguages = dBService.getAllLanguages();
 
     return SafeArea(
       child: Scaffold(
@@ -36,29 +38,69 @@ class CreateCardPage extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 35),
-              // TODO: fix this
-              DropdownMenu(
-                controller: languageController,
-                label: const Text('Language'),
-                width: 342,
-                dropdownMenuEntries: const [
-                  DropdownMenuEntry(
-                    value: 'German',
-                    label: 'German',
-                  ),
-                ],
+
+              // Dropdown for language selection
+              FutureBuilder<List<database_model.Language>>(
+                future: dBService.getAllLanguages(),
+                builder: (context, snapshot) {
+                  final List<database_model.Language>? languages =
+                      snapshot.data;
+
+                  if (snapshot.data == null) {
+                    return const CircularProgressIndicator();
+                  } else if (snapshot.hasData &&
+                      snapshot.connectionState == ConnectionState.done) {
+                    return DropdownMenu(
+                      controller: languageController,
+                      label: const Text('Language'),
+                      width: 342,
+                      initialSelection: defaultLanguage ?? 1,
+                      menuStyle: MenuStyle(
+                        backgroundColor:
+                            WidgetStatePropertyAll(Colors.grey.shade800),
+                      ),
+                      dropdownMenuEntries: languages!.map((l) {
+                        return DropdownMenuEntry(
+                          value: l.language,
+                          label: l.language,
+                        );
+                      }).toList(),
+                    );
+                  } else {
+                    return const Text('Loading...');
+                  }
+                },
               ),
               const SizedBox(height: 20),
-              DropdownMenu(
-                controller: languageController,
-                label: const Text('Word Class/Category'),
-                width: 342,
-                dropdownMenuEntries: const [
-                  DropdownMenuEntry(
-                    value: 'Example Word Category',
-                    label: 'Example Word Class/Category',
-                  ),
-                ],
+
+              // Dropdown for word category selection
+              FutureBuilder<List<database_model.Category>>(
+                future: dBService.getAllCategories(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData &&
+                      snapshot.connectionState == ConnectionState.done) {
+                    final List<database_model.Category> categories =
+                        snapshot.data!;
+
+                    return DropdownMenu(
+                      controller: categoryController,
+                      label: const Text('Word Class/Category'),
+                      width: 342,
+                      menuStyle: MenuStyle(
+                        backgroundColor:
+                            WidgetStatePropertyAll(Colors.grey.shade800),
+                      ),
+                      dropdownMenuEntries: categories.map((c) {
+                        return DropdownMenuEntry(
+                          value: c.category,
+                          label: c.category,
+                        );
+                      }).toList(),
+                    );
+                  } else {
+                    return const Text('Loading...');
+                  }
+                },
               ),
               const SizedBox(height: 20),
               TextField(

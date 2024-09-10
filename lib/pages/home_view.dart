@@ -104,11 +104,10 @@ class HomeView extends StatelessWidget {
               },
             ),
             MaterialButton(
-                child: const Text('Del. Card'),
-                onPressed: () {
-                  dbService.deleteCard(1);
-                }),
-            const Spacer(flex: 2),
+              onPressed: dbService.clearData,
+              child: const Text('Reset/Erase DB'),
+            ),
+            const Spacer(flex: 1),
           ],
         ),
         floatingActionButton: FloatingActionButton(
