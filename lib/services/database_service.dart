@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/models/database.dart';
 import 'package:path_provider/path_provider.dart';
@@ -34,14 +35,14 @@ class DatabaseService {
 
   void initialiseDB() async {
     final List<Card> cardlist = await getAllCards();
-    final List<Language> langList = await getAllLanguages();
-    final List<Category> catList = await getAllCategories();
+    // final List<Language> langList = await getAllLanguages();
+    // final List<Category> catList = await getAllCategories();
 
     cardlist.isEmpty ? isEmptyFunctions() : print('database loaded');
 
-    print(cardlist);
-    print(langList);
-    print(catList);
+    // print(cardlist);
+    // print(langList);
+    // print(catList);
   }
 
   void isEmptyFunctions() {
@@ -64,10 +65,10 @@ class DatabaseService {
     }
 
     createCard(
-      'German',
-      'Phrase',
-      'Example Card',
-      'Example Reveal Content',
+      language: 'German',
+      category: 'Phrase',
+      frontContent: 'Example Card',
+      revealContent: 'Example Reveal Content',
     );
   }
 
@@ -88,7 +89,16 @@ class DatabaseService {
         .get();
   }
 
-  void createCard(language, category, frontContent, revealContent) async {
+  Future<void> createCard({
+    required language,
+    required category,
+    required frontContent,
+    required revealContent,
+    String? gender,
+    String? pluralForm,
+    String? pronunciation,
+    String? exampleUsage,
+  }) async {
     final int? langID = await getLangID(language);
     final int langIDOrDefault = langID ?? 1;
     final int? catID = await getCatID(category);
@@ -103,6 +113,10 @@ class DatabaseService {
             category: catIDOrDefault,
             frontContent: frontContent,
             revealContent: revealContent,
+            gender: Value(gender),
+            pluralForm: Value(pluralForm),
+            pronunciation: Value(pronunciation),
+            exampleUsage: Value(exampleUsage),
           ),
         );
   }

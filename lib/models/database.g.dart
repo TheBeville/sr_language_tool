@@ -425,6 +425,11 @@ class $CardsTable extends Cards with TableInfo<$CardsTable, Card> {
   late final GeneratedColumn<String> pluralForm = GeneratedColumn<String>(
       'plural_form', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _genderMeta = const VerificationMeta('gender');
+  @override
+  late final GeneratedColumn<String> gender = GeneratedColumn<String>(
+      'gender', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _lastReviewMeta =
       const VerificationMeta('lastReview');
   @override
@@ -447,6 +452,7 @@ class $CardsTable extends Cards with TableInfo<$CardsTable, Card> {
         pronunciation,
         exampleUsage,
         pluralForm,
+        gender,
         lastReview,
         nextReviewDue
       ];
@@ -509,6 +515,10 @@ class $CardsTable extends Cards with TableInfo<$CardsTable, Card> {
           pluralForm.isAcceptableOrUnknown(
               data['plural_form']!, _pluralFormMeta));
     }
+    if (data.containsKey('gender')) {
+      context.handle(_genderMeta,
+          gender.isAcceptableOrUnknown(data['gender']!, _genderMeta));
+    }
     if (data.containsKey('last_review')) {
       context.handle(
           _lastReviewMeta,
@@ -546,6 +556,8 @@ class $CardsTable extends Cards with TableInfo<$CardsTable, Card> {
           .read(DriftSqlType.string, data['${effectivePrefix}example_usage']),
       pluralForm: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}plural_form']),
+      gender: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}gender']),
       lastReview: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}last_review']),
       nextReviewDue: attachedDatabase.typeMapping.read(
@@ -568,6 +580,7 @@ class Card extends DataClass implements Insertable<Card> {
   final String? pronunciation;
   final String? exampleUsage;
   final String? pluralForm;
+  final String? gender;
   final DateTime? lastReview;
   final DateTime? nextReviewDue;
   const Card(
@@ -579,6 +592,7 @@ class Card extends DataClass implements Insertable<Card> {
       this.pronunciation,
       this.exampleUsage,
       this.pluralForm,
+      this.gender,
       this.lastReview,
       this.nextReviewDue});
   @override
@@ -597,6 +611,9 @@ class Card extends DataClass implements Insertable<Card> {
     }
     if (!nullToAbsent || pluralForm != null) {
       map['plural_form'] = Variable<String>(pluralForm);
+    }
+    if (!nullToAbsent || gender != null) {
+      map['gender'] = Variable<String>(gender);
     }
     if (!nullToAbsent || lastReview != null) {
       map['last_review'] = Variable<DateTime>(lastReview);
@@ -623,6 +640,8 @@ class Card extends DataClass implements Insertable<Card> {
       pluralForm: pluralForm == null && nullToAbsent
           ? const Value.absent()
           : Value(pluralForm),
+      gender:
+          gender == null && nullToAbsent ? const Value.absent() : Value(gender),
       lastReview: lastReview == null && nullToAbsent
           ? const Value.absent()
           : Value(lastReview),
@@ -644,6 +663,7 @@ class Card extends DataClass implements Insertable<Card> {
       pronunciation: serializer.fromJson<String?>(json['pronunciation']),
       exampleUsage: serializer.fromJson<String?>(json['exampleUsage']),
       pluralForm: serializer.fromJson<String?>(json['pluralForm']),
+      gender: serializer.fromJson<String?>(json['gender']),
       lastReview: serializer.fromJson<DateTime?>(json['lastReview']),
       nextReviewDue: serializer.fromJson<DateTime?>(json['nextReviewDue']),
     );
@@ -660,6 +680,7 @@ class Card extends DataClass implements Insertable<Card> {
       'pronunciation': serializer.toJson<String?>(pronunciation),
       'exampleUsage': serializer.toJson<String?>(exampleUsage),
       'pluralForm': serializer.toJson<String?>(pluralForm),
+      'gender': serializer.toJson<String?>(gender),
       'lastReview': serializer.toJson<DateTime?>(lastReview),
       'nextReviewDue': serializer.toJson<DateTime?>(nextReviewDue),
     };
@@ -674,6 +695,7 @@ class Card extends DataClass implements Insertable<Card> {
           Value<String?> pronunciation = const Value.absent(),
           Value<String?> exampleUsage = const Value.absent(),
           Value<String?> pluralForm = const Value.absent(),
+          Value<String?> gender = const Value.absent(),
           Value<DateTime?> lastReview = const Value.absent(),
           Value<DateTime?> nextReviewDue = const Value.absent()}) =>
       Card(
@@ -687,6 +709,7 @@ class Card extends DataClass implements Insertable<Card> {
         exampleUsage:
             exampleUsage.present ? exampleUsage.value : this.exampleUsage,
         pluralForm: pluralForm.present ? pluralForm.value : this.pluralForm,
+        gender: gender.present ? gender.value : this.gender,
         lastReview: lastReview.present ? lastReview.value : this.lastReview,
         nextReviewDue:
             nextReviewDue.present ? nextReviewDue.value : this.nextReviewDue,
@@ -710,6 +733,7 @@ class Card extends DataClass implements Insertable<Card> {
           : this.exampleUsage,
       pluralForm:
           data.pluralForm.present ? data.pluralForm.value : this.pluralForm,
+      gender: data.gender.present ? data.gender.value : this.gender,
       lastReview:
           data.lastReview.present ? data.lastReview.value : this.lastReview,
       nextReviewDue: data.nextReviewDue.present
@@ -729,6 +753,7 @@ class Card extends DataClass implements Insertable<Card> {
           ..write('pronunciation: $pronunciation, ')
           ..write('exampleUsage: $exampleUsage, ')
           ..write('pluralForm: $pluralForm, ')
+          ..write('gender: $gender, ')
           ..write('lastReview: $lastReview, ')
           ..write('nextReviewDue: $nextReviewDue')
           ..write(')'))
@@ -745,6 +770,7 @@ class Card extends DataClass implements Insertable<Card> {
       pronunciation,
       exampleUsage,
       pluralForm,
+      gender,
       lastReview,
       nextReviewDue);
   @override
@@ -759,6 +785,7 @@ class Card extends DataClass implements Insertable<Card> {
           other.pronunciation == this.pronunciation &&
           other.exampleUsage == this.exampleUsage &&
           other.pluralForm == this.pluralForm &&
+          other.gender == this.gender &&
           other.lastReview == this.lastReview &&
           other.nextReviewDue == this.nextReviewDue);
 }
@@ -772,6 +799,7 @@ class CardsCompanion extends UpdateCompanion<Card> {
   final Value<String?> pronunciation;
   final Value<String?> exampleUsage;
   final Value<String?> pluralForm;
+  final Value<String?> gender;
   final Value<DateTime?> lastReview;
   final Value<DateTime?> nextReviewDue;
   const CardsCompanion({
@@ -783,6 +811,7 @@ class CardsCompanion extends UpdateCompanion<Card> {
     this.pronunciation = const Value.absent(),
     this.exampleUsage = const Value.absent(),
     this.pluralForm = const Value.absent(),
+    this.gender = const Value.absent(),
     this.lastReview = const Value.absent(),
     this.nextReviewDue = const Value.absent(),
   });
@@ -795,6 +824,7 @@ class CardsCompanion extends UpdateCompanion<Card> {
     this.pronunciation = const Value.absent(),
     this.exampleUsage = const Value.absent(),
     this.pluralForm = const Value.absent(),
+    this.gender = const Value.absent(),
     this.lastReview = const Value.absent(),
     this.nextReviewDue = const Value.absent(),
   })  : language = Value(language),
@@ -810,6 +840,7 @@ class CardsCompanion extends UpdateCompanion<Card> {
     Expression<String>? pronunciation,
     Expression<String>? exampleUsage,
     Expression<String>? pluralForm,
+    Expression<String>? gender,
     Expression<DateTime>? lastReview,
     Expression<DateTime>? nextReviewDue,
   }) {
@@ -822,6 +853,7 @@ class CardsCompanion extends UpdateCompanion<Card> {
       if (pronunciation != null) 'pronunciation': pronunciation,
       if (exampleUsage != null) 'example_usage': exampleUsage,
       if (pluralForm != null) 'plural_form': pluralForm,
+      if (gender != null) 'gender': gender,
       if (lastReview != null) 'last_review': lastReview,
       if (nextReviewDue != null) 'next_review_due': nextReviewDue,
     });
@@ -836,6 +868,7 @@ class CardsCompanion extends UpdateCompanion<Card> {
       Value<String?>? pronunciation,
       Value<String?>? exampleUsage,
       Value<String?>? pluralForm,
+      Value<String?>? gender,
       Value<DateTime?>? lastReview,
       Value<DateTime?>? nextReviewDue}) {
     return CardsCompanion(
@@ -847,6 +880,7 @@ class CardsCompanion extends UpdateCompanion<Card> {
       pronunciation: pronunciation ?? this.pronunciation,
       exampleUsage: exampleUsage ?? this.exampleUsage,
       pluralForm: pluralForm ?? this.pluralForm,
+      gender: gender ?? this.gender,
       lastReview: lastReview ?? this.lastReview,
       nextReviewDue: nextReviewDue ?? this.nextReviewDue,
     );
@@ -879,6 +913,9 @@ class CardsCompanion extends UpdateCompanion<Card> {
     if (pluralForm.present) {
       map['plural_form'] = Variable<String>(pluralForm.value);
     }
+    if (gender.present) {
+      map['gender'] = Variable<String>(gender.value);
+    }
     if (lastReview.present) {
       map['last_review'] = Variable<DateTime>(lastReview.value);
     }
@@ -899,6 +936,7 @@ class CardsCompanion extends UpdateCompanion<Card> {
           ..write('pronunciation: $pronunciation, ')
           ..write('exampleUsage: $exampleUsage, ')
           ..write('pluralForm: $pluralForm, ')
+          ..write('gender: $gender, ')
           ..write('lastReview: $lastReview, ')
           ..write('nextReviewDue: $nextReviewDue')
           ..write(')'))
@@ -1222,6 +1260,7 @@ typedef $$CardsTableCreateCompanionBuilder = CardsCompanion Function({
   Value<String?> pronunciation,
   Value<String?> exampleUsage,
   Value<String?> pluralForm,
+  Value<String?> gender,
   Value<DateTime?> lastReview,
   Value<DateTime?> nextReviewDue,
 });
@@ -1234,6 +1273,7 @@ typedef $$CardsTableUpdateCompanionBuilder = CardsCompanion Function({
   Value<String?> pronunciation,
   Value<String?> exampleUsage,
   Value<String?> pluralForm,
+  Value<String?> gender,
   Value<DateTime?> lastReview,
   Value<DateTime?> nextReviewDue,
 });
@@ -1299,6 +1339,11 @@ class $$CardsTableFilterComposer
 
   ColumnFilters<String> get pluralForm => $state.composableBuilder(
       column: $state.table.pluralForm,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get gender => $state.composableBuilder(
+      column: $state.table.gender,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -1370,6 +1415,11 @@ class $$CardsTableOrderingComposer
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
+  ColumnOrderings<String> get gender => $state.composableBuilder(
+      column: $state.table.gender,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
   ColumnOrderings<DateTime> get lastReview => $state.composableBuilder(
       column: $state.table.lastReview,
       builder: (column, joinBuilders) =>
@@ -1433,6 +1483,7 @@ class $$CardsTableTableManager extends RootTableManager<
             Value<String?> pronunciation = const Value.absent(),
             Value<String?> exampleUsage = const Value.absent(),
             Value<String?> pluralForm = const Value.absent(),
+            Value<String?> gender = const Value.absent(),
             Value<DateTime?> lastReview = const Value.absent(),
             Value<DateTime?> nextReviewDue = const Value.absent(),
           }) =>
@@ -1445,6 +1496,7 @@ class $$CardsTableTableManager extends RootTableManager<
             pronunciation: pronunciation,
             exampleUsage: exampleUsage,
             pluralForm: pluralForm,
+            gender: gender,
             lastReview: lastReview,
             nextReviewDue: nextReviewDue,
           ),
@@ -1457,6 +1509,7 @@ class $$CardsTableTableManager extends RootTableManager<
             Value<String?> pronunciation = const Value.absent(),
             Value<String?> exampleUsage = const Value.absent(),
             Value<String?> pluralForm = const Value.absent(),
+            Value<String?> gender = const Value.absent(),
             Value<DateTime?> lastReview = const Value.absent(),
             Value<DateTime?> nextReviewDue = const Value.absent(),
           }) =>
@@ -1469,6 +1522,7 @@ class $$CardsTableTableManager extends RootTableManager<
             pronunciation: pronunciation,
             exampleUsage: exampleUsage,
             pluralForm: pluralForm,
+            gender: gender,
             lastReview: lastReview,
             nextReviewDue: nextReviewDue,
           ),

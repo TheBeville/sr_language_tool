@@ -5,12 +5,23 @@ import 'package:sr_language_tool/pages/create_card_page.dart';
 import 'package:sr_language_tool/pages/language_overview_page.dart';
 import 'package:sr_language_tool/services/database_service.dart';
 
-class HomeView extends StatelessWidget {
-  HomeView({super.key});
+class HomeView extends StatefulWidget {
+  const HomeView({super.key});
 
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
   final database = locator.get<database_model.AppDatabase>();
   final dbService = locator.get<DatabaseService>();
   final addLangController = TextEditingController();
+
+  @override
+  void dispose() {
+    addLangController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +107,7 @@ class HomeView extends StatelessWidget {
                         child: const Text('Add'),
                         onPressed: () {
                           dbService.createLangCat(addLangController.text);
+                          Navigator.of(context).pop();
                         },
                       ),
                     ],
@@ -119,7 +131,7 @@ class HomeView extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CreateCardPage(),
+                builder: (context) => const CreateCardPage(),
               ),
             );
           },

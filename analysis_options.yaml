@@ -10,7 +10,7 @@ linter:
     prefer_single_quotes: true
     prefer_final_locals: true
     require_trailing_commas: true
-    sort_pub_dependencies: true
+    sort_pub_dependencies: false
     unawaited_futures: true
     unnecessary_to_list_in_spreads: true
     use_super_parameters: true

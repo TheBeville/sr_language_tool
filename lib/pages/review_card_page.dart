@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/models/database.dart' as database_model;
 import 'package:sr_language_tool/services/database_service.dart';
-import 'package:sr_language_tool/widgets/reviewable_card.dart';
+// import 'package:sr_language_tool/widgets/reviewable_card.dart';
 
 class ReviewCardPage extends StatelessWidget {
   ReviewCardPage({required this.selectedLanguage, super.key});
