@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:sr_language_tool/constants.dart';
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/models/database.dart' as database_model;
 import 'package:sr_language_tool/pages/create_card_page.dart';
 import 'package:sr_language_tool/pages/review_card_page.dart';
+import 'package:sr_language_tool/pages/view_card_page.dart';
 import 'package:sr_language_tool/services/database_service.dart';
 
-class LanguageOverviewPage extends StatelessWidget {
-  LanguageOverviewPage({required this.selectedLanguage, super.key});
-
-  final database = locator.get<database_model.AppDatabase>();
-  final databaseService = locator.get<DatabaseService>();
+class LanguageOverviewPage extends StatefulWidget {
+  const LanguageOverviewPage({required this.selectedLanguage, super.key});
 
   final String selectedLanguage;
+
+  @override
+  State<LanguageOverviewPage> createState() => _LanguageOverviewPageState();
+}
+
+class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
+  final dB = locator.get<database_model.AppDatabase>();
+  final dBService = locator.get<DatabaseService>();
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +26,8 @@ class LanguageOverviewPage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            selectedLanguage.toUpperCase(),
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
-              fontStyle: FontStyle.italic,
-            ),
+            widget.selectedLanguage.toUpperCase(),
+            style: appBarTitleStyling,
           ),
           actions: [
             Padding(
@@ -35,7 +38,7 @@ class LanguageOverviewPage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => ReviewCardPage(
-                        selectedLanguage: selectedLanguage,
+                        selectedLanguage: widget.selectedLanguage,
                       ),
                     ),
                   );
@@ -53,24 +56,91 @@ class LanguageOverviewPage extends StatelessWidget {
           ],
         ),
         body: FutureBuilder<List<database_model.Card>>(
-          future: databaseService.getCardsOfLang(selectedLanguage),
+          future: dBService.getCardsOfLang(widget.selectedLanguage),
           builder: (context, snapshot) {
             if (snapshot.hasData &&
                 snapshot.connectionState == ConnectionState.done) {
               final List<database_model.Card> cards = snapshot.data!;
 
-              return SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: cards.map((card) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(
-                        card.frontContent,
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                    );
-                  }).toList(),
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: cards.map((card) {
+                      return Column(
+                        children: [
+                          ListTile(
+                            title: Text(
+                              card.frontContent,
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                            minVerticalPadding: 0,
+                            horizontalTitleGap: 0,
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 0),
+                            minTileHeight: 30,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ViewCardPage(
+                                    cardLanguage: widget.selectedLanguage,
+                                    card: card,
+                                  ),
+                                ),
+                              );
+                            },
+                            onLongPress: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Modify card?'),
+                                  actions: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        MaterialButton(
+                                          child: const Text('Edit'),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    const CreateCardPage(),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                        MaterialButton(
+                                          child: const Text('Delete'),
+                                          onPressed: () {
+                                            setState(() {
+                                              dBService.deleteCard(card.id);
+                                              Navigator.of(context).pop();
+                                            });
+                                          },
+                                        ),
+                                        MaterialButton(
+                                          child: const Text('Cancel'),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                          const Divider(height: 1),
+                        ],
+                      );
+                    }).toList(),
+                  ),
                 ),
               );
             } else {
@@ -88,7 +158,7 @@ class LanguageOverviewPage extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) =>
-                    CreateCardPage(defaultLanguage: selectedLanguage),
+                    CreateCardPage(defaultLanguage: widget.selectedLanguage),
               ),
             );
           },

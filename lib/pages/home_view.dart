@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sr_language_tool/constants.dart';
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/models/database.dart' as database_model;
 import 'package:sr_language_tool/pages/create_card_page.dart';
@@ -13,7 +14,7 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  final database = locator.get<database_model.AppDatabase>();
+  final dB = locator.get<database_model.AppDatabase>();
   final dbService = locator.get<DatabaseService>();
   final addLangController = TextEditingController();
 
@@ -30,11 +31,7 @@ class _HomeViewState extends State<HomeView> {
         appBar: AppBar(
           title: const Text(
             'SR TOOL',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
-              fontStyle: FontStyle.italic,
-            ),
+            style: appBarTitleStyling,
           ),
         ),
         body: Column(
@@ -46,7 +43,7 @@ class _HomeViewState extends State<HomeView> {
                 child: Text(
                   'Languages',
                   style: TextStyle(
-                    fontSize: 22,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -64,10 +61,14 @@ class _HomeViewState extends State<HomeView> {
                         final String selectedLanguage =
                             snapshot.data![index].language;
                         return ListTile(
-                          leading: const Icon(Icons.flag),
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 20),
+                          minVerticalPadding: 0,
+                          minTileHeight: 35,
+                          // leading: const Icon(Icons.flag),
                           title: Text(
                             snapshot.data![index].language,
-                            style: const TextStyle(fontSize: 18),
+                            style: const TextStyle(fontSize: 20),
                           ),
                           onTap: () {
                             Navigator.push(
@@ -103,12 +104,25 @@ class _HomeViewState extends State<HomeView> {
                       ),
                     ),
                     actions: [
-                      MaterialButton(
-                        child: const Text('Add'),
-                        onPressed: () {
-                          dbService.createLangCat(addLangController.text);
-                          Navigator.of(context).pop();
-                        },
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          MaterialButton(
+                            child: const Text('Add'),
+                            onPressed: () {
+                              setState(() {
+                                dbService.createLangCat(addLangController.text);
+                              });
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          MaterialButton(
+                            child: const Text('Cancel'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),

@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
 class DatabaseService {
-  final database = locator.get<AppDatabase>();
+  final dB = locator.get<AppDatabase>();
 
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ \\
   // @ CAUTION: DELETES DATABASE FILE @ \\
@@ -39,10 +39,6 @@ class DatabaseService {
     // final List<Category> catList = await getAllCategories();
 
     cardlist.isEmpty ? isEmptyFunctions() : print('database loaded');
-
-    // print(cardlist);
-    // print(langList);
-    // print(catList);
   }
 
   void isEmptyFunctions() {
@@ -77,14 +73,14 @@ class DatabaseService {
   // @@@@@@@@@@@@@@@@@@@@@@ \\
 
   Future<List<Card>> getAllCards() async {
-    return await database.select(database.cards).get();
+    return await dB.select(dB.cards).get();
   }
 
   Future<List<Card>> getCardsOfLang(language) async {
     final int? langID = await getLangID(language);
     final int langIDOrDefault = langID ?? 1;
 
-    return await (database.select(database.cards)
+    return await (dB.select(dB.cards)
           ..where((c) => c.language.equals(langIDOrDefault)))
         .get();
   }
@@ -104,10 +100,10 @@ class DatabaseService {
     final int? catID = await getCatID(category);
     final int catIDOrDefault = catID ?? 1;
 
-    category = database.select(database.categories)
+    category = dB.select(dB.categories)
       ..where((c) => c.category.equals(category));
     category.map((column) => column.id).get();
-    await database.into(database.cards).insert(
+    await dB.into(dB.cards).insert(
           CardsCompanion.insert(
             language: langIDOrDefault,
             category: catIDOrDefault,
@@ -122,13 +118,11 @@ class DatabaseService {
   }
 
   Future deleteCard(int id) {
-    return (database.delete(database.cards)
-          ..where((card) => card.id.equals(id)))
-        .go();
+    return (dB.delete(dB.cards)..where((card) => card.id.equals(id))).go();
   }
 
   void updateCard(Card card) {
-    database.update(database.cards).replace(card);
+    dB.update(dB.cards).replace(card);
   }
 
   // @@@@@@@@@@@@@@@@@@@@@@@ \\
@@ -136,12 +130,12 @@ class DatabaseService {
   // @@@@@@@@@@@@@@@@@@@@@@@ \\
 
   Future<List<Language>> getAllLanguages() async {
-    return await database.select(database.languages).get();
+    return await dB.select(dB.languages).get();
   }
 
   // gets the id/primary key for given String in languages table
   Future<int?> getLangID(String language) async {
-    final query = database.select(database.languages)
+    final query = dB.select(dB.languages)
       ..where((tbl) => tbl.language.equals(language));
     final lang = await query.getSingleOrNull();
 
@@ -149,13 +143,13 @@ class DatabaseService {
   }
 
   void createLangCat(language) async {
-    await database.into(database.languages).insert(
+    await dB.into(dB.languages).insert(
           LanguagesCompanion.insert(language: language),
         );
   }
 
   Future deleteLang(int id) {
-    return (database.delete(database.languages)
+    return (dB.delete(dB.languages)
           ..where((language) => language.id.equals(id)))
         .go();
   }
@@ -165,12 +159,20 @@ class DatabaseService {
   // @@@@@@@@@@@@@@@@@@@@@@@ \\
 
   Future<List<Category>> getAllCategories() async {
-    return await database.select(database.categories).get();
+    return await dB.select(dB.categories).get();
+  }
+
+  Future<String?> getCatByID(int catID) async {
+    final categoryRow = await (dB.select(dB.categories)
+          ..where((tbl) => tbl.id.equals(catID)))
+        .getSingleOrNull();
+
+    return categoryRow?.category;
   }
 
   // gets the id/primary key for given String in categories table
   Future<int?> getCatID(String category) async {
-    final query = database.select(database.categories)
+    final query = dB.select(dB.categories)
       ..where((tbl) => tbl.category.equals(category));
     final cat = await query.getSingleOrNull();
 
@@ -178,13 +180,13 @@ class DatabaseService {
   }
 
   void createCategory(category) async {
-    await database.into(database.categories).insert(
+    await dB.into(dB.categories).insert(
           CategoriesCompanion.insert(category: category),
         );
   }
 
   Future deleteCategory(int id) {
-    return (database.delete(database.categories)
+    return (dB.delete(dB.categories)
           ..where((category) => category.id.equals(id)))
         .go();
   }

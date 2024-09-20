@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sr_language_tool/constants.dart';
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/models/database.dart' as database_model;
-// import 'package:sr_language_tool/models/database.dart';
 import 'package:sr_language_tool/services/database_service.dart';
 
 class CreateCardPage extends StatefulWidget {
@@ -14,7 +14,7 @@ class CreateCardPage extends StatefulWidget {
 }
 
 class _CreateCardPageState extends State<CreateCardPage> {
-  final database = locator.get<database_model.AppDatabase>();
+  final dB = locator.get<database_model.AppDatabase>();
   final dBService = locator.get<DatabaseService>();
 
   final TextEditingController languageController = TextEditingController();
@@ -39,8 +39,25 @@ class _CreateCardPageState extends State<CreateCardPage> {
     super.dispose();
   }
 
+  // TODO: submit datetime for lastReview and nextReviewDue
+  void submitCardData() {
+    dBService.createCard(
+      language: languageController.text,
+      category: categoryController.text,
+      frontContent: frontContentController.text,
+      revealContent: revealContentController.text,
+      gender: isNoun ? genderController.text : null,
+      pluralForm: pluralController.text.isEmpty ? null : pluralController.text,
+      pronunciation: pronunciationController.text.isEmpty
+          ? null
+          : pronunciationController.text,
+      exampleUsage: exampleUsageController.text.isEmpty
+          ? null
+          : exampleUsageController.text,
+    );
+  }
+
   void clearControllers() {
-    languageController.clear();
     categoryController.clear();
     frontContentController.clear();
     revealContentController.clear();
@@ -51,7 +68,6 @@ class _CreateCardPageState extends State<CreateCardPage> {
   }
 
   bool isNoun = false;
-  double textFieldSpacerValue = 10;
 
   @override
   Widget build(BuildContext context) {
@@ -60,11 +76,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
         appBar: AppBar(
           title: const Text(
             'CREATE CARD',
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.w900,
-              fontStyle: FontStyle.italic,
-            ),
+            style: appBarTitleStyling,
           ),
         ),
         body: Padding(
@@ -164,7 +176,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
                         ],
                       )
                     : const SizedBox(),
-                SizedBox(height: textFieldSpacerValue),
+                const SizedBox(height: createCardTextFieldSpace),
                 TextField(
                   decoration: const InputDecoration(
                     labelText: 'Front Content',
@@ -172,7 +184,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
                   ),
                   controller: frontContentController,
                 ),
-                SizedBox(height: textFieldSpacerValue),
+                const SizedBox(height: createCardTextFieldSpace),
                 TextField(
                   decoration: const InputDecoration(
                     labelText: 'Reveal Content',
@@ -184,7 +196,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
                 isNoun
                     ? Column(
                         children: [
-                          SizedBox(height: textFieldSpacerValue),
+                          const SizedBox(height: createCardTextFieldSpace),
                           TextField(
                             controller: pluralController,
                             decoration: const InputDecoration(
@@ -195,7 +207,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
                         ],
                       )
                     : const SizedBox(),
-                SizedBox(height: textFieldSpacerValue),
+                const SizedBox(height: createCardTextFieldSpace),
                 TextField(
                   controller: pronunciationController,
                   decoration: const InputDecoration(
@@ -203,7 +215,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
                     hintText: 'Add pronunciation guideline',
                   ),
                 ),
-                SizedBox(height: textFieldSpacerValue),
+                const SizedBox(height: createCardTextFieldSpace),
                 TextField(
                   controller: exampleUsageController,
                   decoration: const InputDecoration(
@@ -218,17 +230,11 @@ class _CreateCardPageState extends State<CreateCardPage> {
                         WidgetStatePropertyAll(Colors.grey.shade200),
                   ),
                   onPressed: () {
-                    dBService.createCard(
-                      language: languageController.text,
-                      category: categoryController.text,
-                      frontContent: frontContentController.text,
-                      revealContent: revealContentController.text,
-                      gender: isNoun ? genderController.text : null,
-                      pluralForm: pluralController.text,
-                      pronunciation: pronunciationController.text,
-                      exampleUsage: exampleUsageController.text,
-                    );
+                    submitCardData();
                     clearControllers();
+                    setState(() {
+                      isNoun = false;
+                    });
                   },
                   child: Text(
                     'Create',
