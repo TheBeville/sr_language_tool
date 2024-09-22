@@ -434,14 +434,14 @@ class $CardsTable extends Cards with TableInfo<$CardsTable, Card> {
       const VerificationMeta('lastReview');
   @override
   late final GeneratedColumn<DateTime> lastReview = GeneratedColumn<DateTime>(
-      'last_review', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+      'last_review', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
   static const VerificationMeta _nextReviewDueMeta =
       const VerificationMeta('nextReviewDue');
   @override
   late final GeneratedColumn<DateTime> nextReviewDue =
-      GeneratedColumn<DateTime>('next_review_due', aliasedName, true,
-          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+      GeneratedColumn<DateTime>('next_review_due', aliasedName, false,
+          type: DriftSqlType.dateTime, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -524,12 +524,16 @@ class $CardsTable extends Cards with TableInfo<$CardsTable, Card> {
           _lastReviewMeta,
           lastReview.isAcceptableOrUnknown(
               data['last_review']!, _lastReviewMeta));
+    } else if (isInserting) {
+      context.missing(_lastReviewMeta);
     }
     if (data.containsKey('next_review_due')) {
       context.handle(
           _nextReviewDueMeta,
           nextReviewDue.isAcceptableOrUnknown(
               data['next_review_due']!, _nextReviewDueMeta));
+    } else if (isInserting) {
+      context.missing(_nextReviewDueMeta);
     }
     return context;
   }
@@ -559,9 +563,9 @@ class $CardsTable extends Cards with TableInfo<$CardsTable, Card> {
       gender: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}gender']),
       lastReview: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}last_review']),
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}last_review'])!,
       nextReviewDue: attachedDatabase.typeMapping.read(
-          DriftSqlType.dateTime, data['${effectivePrefix}next_review_due']),
+          DriftSqlType.dateTime, data['${effectivePrefix}next_review_due'])!,
     );
   }
 
@@ -581,8 +585,8 @@ class Card extends DataClass implements Insertable<Card> {
   final String? exampleUsage;
   final String? pluralForm;
   final String? gender;
-  final DateTime? lastReview;
-  final DateTime? nextReviewDue;
+  final DateTime lastReview;
+  final DateTime nextReviewDue;
   const Card(
       {required this.id,
       required this.language,
@@ -593,8 +597,8 @@ class Card extends DataClass implements Insertable<Card> {
       this.exampleUsage,
       this.pluralForm,
       this.gender,
-      this.lastReview,
-      this.nextReviewDue});
+      required this.lastReview,
+      required this.nextReviewDue});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -615,12 +619,8 @@ class Card extends DataClass implements Insertable<Card> {
     if (!nullToAbsent || gender != null) {
       map['gender'] = Variable<String>(gender);
     }
-    if (!nullToAbsent || lastReview != null) {
-      map['last_review'] = Variable<DateTime>(lastReview);
-    }
-    if (!nullToAbsent || nextReviewDue != null) {
-      map['next_review_due'] = Variable<DateTime>(nextReviewDue);
-    }
+    map['last_review'] = Variable<DateTime>(lastReview);
+    map['next_review_due'] = Variable<DateTime>(nextReviewDue);
     return map;
   }
 
@@ -642,12 +642,8 @@ class Card extends DataClass implements Insertable<Card> {
           : Value(pluralForm),
       gender:
           gender == null && nullToAbsent ? const Value.absent() : Value(gender),
-      lastReview: lastReview == null && nullToAbsent
-          ? const Value.absent()
-          : Value(lastReview),
-      nextReviewDue: nextReviewDue == null && nullToAbsent
-          ? const Value.absent()
-          : Value(nextReviewDue),
+      lastReview: Value(lastReview),
+      nextReviewDue: Value(nextReviewDue),
     );
   }
 
@@ -664,8 +660,8 @@ class Card extends DataClass implements Insertable<Card> {
       exampleUsage: serializer.fromJson<String?>(json['exampleUsage']),
       pluralForm: serializer.fromJson<String?>(json['pluralForm']),
       gender: serializer.fromJson<String?>(json['gender']),
-      lastReview: serializer.fromJson<DateTime?>(json['lastReview']),
-      nextReviewDue: serializer.fromJson<DateTime?>(json['nextReviewDue']),
+      lastReview: serializer.fromJson<DateTime>(json['lastReview']),
+      nextReviewDue: serializer.fromJson<DateTime>(json['nextReviewDue']),
     );
   }
   @override
@@ -681,8 +677,8 @@ class Card extends DataClass implements Insertable<Card> {
       'exampleUsage': serializer.toJson<String?>(exampleUsage),
       'pluralForm': serializer.toJson<String?>(pluralForm),
       'gender': serializer.toJson<String?>(gender),
-      'lastReview': serializer.toJson<DateTime?>(lastReview),
-      'nextReviewDue': serializer.toJson<DateTime?>(nextReviewDue),
+      'lastReview': serializer.toJson<DateTime>(lastReview),
+      'nextReviewDue': serializer.toJson<DateTime>(nextReviewDue),
     };
   }
 
@@ -696,8 +692,8 @@ class Card extends DataClass implements Insertable<Card> {
           Value<String?> exampleUsage = const Value.absent(),
           Value<String?> pluralForm = const Value.absent(),
           Value<String?> gender = const Value.absent(),
-          Value<DateTime?> lastReview = const Value.absent(),
-          Value<DateTime?> nextReviewDue = const Value.absent()}) =>
+          DateTime? lastReview,
+          DateTime? nextReviewDue}) =>
       Card(
         id: id ?? this.id,
         language: language ?? this.language,
@@ -710,9 +706,8 @@ class Card extends DataClass implements Insertable<Card> {
             exampleUsage.present ? exampleUsage.value : this.exampleUsage,
         pluralForm: pluralForm.present ? pluralForm.value : this.pluralForm,
         gender: gender.present ? gender.value : this.gender,
-        lastReview: lastReview.present ? lastReview.value : this.lastReview,
-        nextReviewDue:
-            nextReviewDue.present ? nextReviewDue.value : this.nextReviewDue,
+        lastReview: lastReview ?? this.lastReview,
+        nextReviewDue: nextReviewDue ?? this.nextReviewDue,
       );
   Card copyWithCompanion(CardsCompanion data) {
     return Card(
@@ -800,8 +795,8 @@ class CardsCompanion extends UpdateCompanion<Card> {
   final Value<String?> exampleUsage;
   final Value<String?> pluralForm;
   final Value<String?> gender;
-  final Value<DateTime?> lastReview;
-  final Value<DateTime?> nextReviewDue;
+  final Value<DateTime> lastReview;
+  final Value<DateTime> nextReviewDue;
   const CardsCompanion({
     this.id = const Value.absent(),
     this.language = const Value.absent(),
@@ -825,12 +820,14 @@ class CardsCompanion extends UpdateCompanion<Card> {
     this.exampleUsage = const Value.absent(),
     this.pluralForm = const Value.absent(),
     this.gender = const Value.absent(),
-    this.lastReview = const Value.absent(),
-    this.nextReviewDue = const Value.absent(),
+    required DateTime lastReview,
+    required DateTime nextReviewDue,
   })  : language = Value(language),
         category = Value(category),
         frontContent = Value(frontContent),
-        revealContent = Value(revealContent);
+        revealContent = Value(revealContent),
+        lastReview = Value(lastReview),
+        nextReviewDue = Value(nextReviewDue);
   static Insertable<Card> custom({
     Expression<int>? id,
     Expression<int>? language,
@@ -869,8 +866,8 @@ class CardsCompanion extends UpdateCompanion<Card> {
       Value<String?>? exampleUsage,
       Value<String?>? pluralForm,
       Value<String?>? gender,
-      Value<DateTime?>? lastReview,
-      Value<DateTime?>? nextReviewDue}) {
+      Value<DateTime>? lastReview,
+      Value<DateTime>? nextReviewDue}) {
     return CardsCompanion(
       id: id ?? this.id,
       language: language ?? this.language,
@@ -1261,8 +1258,8 @@ typedef $$CardsTableCreateCompanionBuilder = CardsCompanion Function({
   Value<String?> exampleUsage,
   Value<String?> pluralForm,
   Value<String?> gender,
-  Value<DateTime?> lastReview,
-  Value<DateTime?> nextReviewDue,
+  required DateTime lastReview,
+  required DateTime nextReviewDue,
 });
 typedef $$CardsTableUpdateCompanionBuilder = CardsCompanion Function({
   Value<int> id,
@@ -1274,8 +1271,8 @@ typedef $$CardsTableUpdateCompanionBuilder = CardsCompanion Function({
   Value<String?> exampleUsage,
   Value<String?> pluralForm,
   Value<String?> gender,
-  Value<DateTime?> lastReview,
-  Value<DateTime?> nextReviewDue,
+  Value<DateTime> lastReview,
+  Value<DateTime> nextReviewDue,
 });
 
 final class $$CardsTableReferences
@@ -1484,8 +1481,8 @@ class $$CardsTableTableManager extends RootTableManager<
             Value<String?> exampleUsage = const Value.absent(),
             Value<String?> pluralForm = const Value.absent(),
             Value<String?> gender = const Value.absent(),
-            Value<DateTime?> lastReview = const Value.absent(),
-            Value<DateTime?> nextReviewDue = const Value.absent(),
+            Value<DateTime> lastReview = const Value.absent(),
+            Value<DateTime> nextReviewDue = const Value.absent(),
           }) =>
               CardsCompanion(
             id: id,
@@ -1510,8 +1507,8 @@ class $$CardsTableTableManager extends RootTableManager<
             Value<String?> exampleUsage = const Value.absent(),
             Value<String?> pluralForm = const Value.absent(),
             Value<String?> gender = const Value.absent(),
-            Value<DateTime?> lastReview = const Value.absent(),
-            Value<DateTime?> nextReviewDue = const Value.absent(),
+            required DateTime lastReview,
+            required DateTime nextReviewDue,
           }) =>
               CardsCompanion.insert(
             id: id,

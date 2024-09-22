@@ -15,7 +15,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final dB = locator.get<database_model.AppDatabase>();
-  final dbService = locator.get<DatabaseService>();
+  final dBService = locator.get<DatabaseService>();
   final addLangController = TextEditingController();
 
   @override
@@ -52,7 +52,7 @@ class _HomeViewState extends State<HomeView> {
             Expanded(
               flex: 1,
               child: FutureBuilder<List<database_model.Language>>(
-                future: dbService.getAllLanguages(),
+                future: dBService.getAllLanguages(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData &&
                       snapshot.connectionState == ConnectionState.done) {
@@ -77,6 +77,44 @@ class _HomeViewState extends State<HomeView> {
                                 builder: (context) => LanguageOverviewPage(
                                   selectedLanguage: selectedLanguage,
                                 ),
+                              ),
+                            );
+                          },
+                          onLongPress: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Delete language?'),
+                                actions: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      MaterialButton(
+                                        child: const Text('Delete'),
+                                        onPressed: () async {
+                                          final int? langID = await dBService
+                                              .getLangID(selectedLanguage);
+                                          final int langIDOrDefault =
+                                              langID ?? 1;
+                                          setState(() {
+                                            dBService
+                                                .deleteLang(langIDOrDefault);
+                                          });
+                                          if (context.mounted) {
+                                            Navigator.of(context).pop();
+                                          }
+                                        },
+                                      ),
+                                      MaterialButton(
+                                        child: const Text('Cancel'),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             );
                           },
@@ -111,7 +149,7 @@ class _HomeViewState extends State<HomeView> {
                             child: const Text('Add'),
                             onPressed: () {
                               setState(() {
-                                dbService.createLangCat(addLangController.text);
+                                dBService.createLangCat(addLangController.text);
                               });
                               Navigator.of(context).pop();
                             },
@@ -130,7 +168,7 @@ class _HomeViewState extends State<HomeView> {
               },
             ),
             MaterialButton(
-              onPressed: dbService.clearData,
+              onPressed: dBService.clearData,
               child: const Text('Reset/Erase DB'),
             ),
             const Spacer(flex: 1),

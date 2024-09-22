@@ -13,8 +13,8 @@ class Cards extends Table {
   TextColumn get exampleUsage => text().nullable()();
   TextColumn get pluralForm => text().nullable()();
   TextColumn get gender => text().nullable()();
-  DateTimeColumn get lastReview => dateTime().nullable()();
-  DateTimeColumn get nextReviewDue => dateTime().nullable()();
+  DateTimeColumn get lastReview => dateTime()();
+  DateTimeColumn get nextReviewDue => dateTime()();
 }
 
 class Languages extends Table {

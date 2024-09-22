@@ -42,7 +42,7 @@ class DatabaseService {
   }
 
   void isEmptyFunctions() {
-    createLangCat('German');
+    createLangCat('Example Language');
 
     final List<String> defaultWordCats = [
       'Adj.',
@@ -61,10 +61,12 @@ class DatabaseService {
     }
 
     createCard(
-      language: 'German',
+      language: 'Example Language',
       category: 'Phrase',
       frontContent: 'Example Card',
       revealContent: 'Example Reveal Content',
+      lastReview: DateTime.now(),
+      nextReviewDue: DateTime.now().add(const Duration(minutes: 15)),
     );
   }
 
@@ -88,8 +90,10 @@ class DatabaseService {
   Future<void> createCard({
     required language,
     required category,
-    required frontContent,
-    required revealContent,
+    required String frontContent,
+    required String revealContent,
+    required DateTime lastReview,
+    required DateTime nextReviewDue,
     String? gender,
     String? pluralForm,
     String? pronunciation,
@@ -113,6 +117,8 @@ class DatabaseService {
             pluralForm: Value(pluralForm),
             pronunciation: Value(pronunciation),
             exampleUsage: Value(exampleUsage),
+            lastReview: lastReview,
+            nextReviewDue: nextReviewDue,
           ),
         );
   }

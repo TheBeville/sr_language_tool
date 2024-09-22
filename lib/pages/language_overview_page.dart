@@ -71,9 +71,21 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
                       return Column(
                         children: [
                           ListTile(
-                            title: Text(
-                              card.frontContent,
-                              style: const TextStyle(fontSize: 18),
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  card.frontContent,
+                                  style: const TextStyle(fontSize: 18),
+                                ),
+                                Text(
+                                  'Due: ${card.nextReviewDue.day}/${card.nextReviewDue.month}/${card.nextReviewDue.year}',
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ],
                             ),
                             minVerticalPadding: 0,
                             horizontalTitleGap: 0,

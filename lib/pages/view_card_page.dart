@@ -30,6 +30,7 @@ class ViewCardPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Spacer(),
             Text(
               card.frontContent,
               style: const TextStyle(
@@ -88,6 +89,12 @@ class ViewCardPage extends StatelessWidget {
                       const SizedBox(height: 10),
                     ],
                   ),
+            const Spacer(),
+            Text(
+              'Last reviewed: ${card.lastReview}',
+              style: const TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 10),
           ],
         ),
       ),

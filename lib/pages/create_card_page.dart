@@ -40,6 +40,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
   }
 
   // TODO: submit datetime for lastReview and nextReviewDue
+  // TODO: validation to prevent creation of duplicates
   void submitCardData() {
     dBService.createCard(
       language: languageController.text,
@@ -54,6 +55,8 @@ class _CreateCardPageState extends State<CreateCardPage> {
       exampleUsage: exampleUsageController.text.isEmpty
           ? null
           : exampleUsageController.text,
+      lastReview: DateTime.now(),
+      nextReviewDue: DateTime.now().add(const Duration(minutes: 15)),
     );
   }
 
