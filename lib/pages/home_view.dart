@@ -65,7 +65,6 @@ class _HomeViewState extends State<HomeView> {
                               const EdgeInsets.symmetric(horizontal: 20),
                           minVerticalPadding: 0,
                           minTileHeight: 35,
-                          // leading: const Icon(Icons.flag),
                           title: Text(
                             snapshot.data![index].language,
                             style: const TextStyle(fontSize: 20),

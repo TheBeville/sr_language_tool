@@ -127,8 +127,24 @@ class DatabaseService {
     return (dB.delete(dB.cards)..where((card) => card.id.equals(id))).go();
   }
 
-  void updateCard(Card card) {
-    dB.update(dB.cards).replace(card);
+  Future<void> updateCard(Card card) async {
+    await dB.update(dB.cards).replace(card);
+  }
+
+  Future<void> updateLastReview(int cardID, DateTime newDate) async {
+    await (dB.update(dB.cards)..where((tbl) => tbl.id.equals(cardID))).write(
+      CardsCompanion(
+        lastReview: Value(newDate),
+      ),
+    );
+  }
+
+  Future<void> updateNextReviewDue(int cardID, DateTime newDate) async {
+    await (dB.update(dB.cards)..where((tbl) => tbl.id.equals(cardID))).write(
+      CardsCompanion(
+        nextReviewDue: Value(newDate),
+      ),
+    );
   }
 
   // @@@@@@@@@@@@@@@@@@@@@@@ \\

@@ -39,7 +39,6 @@ class _CreateCardPageState extends State<CreateCardPage> {
     super.dispose();
   }
 
-  // TODO: submit datetime for lastReview and nextReviewDue
   // TODO: validation to prevent creation of duplicates
   void submitCardData() {
     dBService.createCard(
@@ -234,6 +233,15 @@ class _CreateCardPageState extends State<CreateCardPage> {
                   ),
                   onPressed: () {
                     submitCardData();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        behavior: SnackBarBehavior.floating,
+                        showCloseIcon: true,
+                        content: Text(
+                          'Card added successfully',
+                        ),
+                      ),
+                    );
                     clearControllers();
                     setState(() {
                       isNoun = false;
