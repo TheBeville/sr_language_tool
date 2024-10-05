@@ -52,12 +52,15 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
                     ),
                   );
                 },
-                child: const Text(
-                  'Review',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: const Text(
+                    'Review',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),

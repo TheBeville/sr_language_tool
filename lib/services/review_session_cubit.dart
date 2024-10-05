@@ -17,6 +17,12 @@ class ReviewSessionCubit extends Cubit<List<database_model.Card>> {
     emit(dueCards);
   }
 
+  Future<void> getDueCardsOfLang(String language) async {
+    final dueCards = await dBService.getDueCardsOfLang(language);
+
+    emit(dueCards);
+  }
+
   Future<void> updateCardReviewStatus({
     required int cardId,
     required bool isCorrect,

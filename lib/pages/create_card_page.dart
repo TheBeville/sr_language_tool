@@ -224,37 +224,47 @@ class _CreateCardPageState extends State<CreateCardPage> {
                         backgroundColor:
                             WidgetStatePropertyAll(Colors.grey.shade200),
                       ),
-                      onPressed: () {
-                        // TODO: validation to prevent creation of duplicates
-                        context.read<CardCubit>().createCard(
-                              language: languageController.text,
-                              category: categoryController.text,
-                              frontContent: frontContentController.text,
-                              revealContent: revealContentController.text,
-                              gender: isNoun ? genderController.text : null,
-                              pluralForm: pluralController.text.isEmpty
-                                  ? null
-                                  : pluralController.text,
-                              pronunciation:
-                                  pronunciationController.text.isEmpty
+                      onPressed: () async {
+                        final bool cardCreated =
+                            await context.read<CardCubit>().createCard(
+                                  language: languageController.text,
+                                  category: categoryController.text,
+                                  frontContent: frontContentController.text,
+                                  revealContent: revealContentController.text,
+                                  gender: isNoun ? genderController.text : null,
+                                  pluralForm: pluralController.text.isEmpty
                                       ? null
-                                      : pronunciationController.text,
-                              exampleUsage: exampleUsageController.text.isEmpty
-                                  ? null
-                                  : exampleUsageController.text,
-                              lastReview: DateTime.now(),
-                              nextReviewDue: DateTime.now()
-                                  .add(const Duration(minutes: 15)),
-                            );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            behavior: SnackBarBehavior.floating,
-                            showCloseIcon: true,
-                            content: Text(
-                              'Card added successfully',
+                                      : pluralController.text,
+                                  pronunciation:
+                                      pronunciationController.text.isEmpty
+                                          ? null
+                                          : pronunciationController.text,
+                                  exampleUsage:
+                                      exampleUsageController.text.isEmpty
+                                          ? null
+                                          : exampleUsageController.text,
+                                  lastReview: DateTime.now(),
+                                  nextReviewDue: DateTime.now()
+                                      .add(const Duration(minutes: 15)),
+                                );
+
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              behavior: SnackBarBehavior.floating,
+                              showCloseIcon: true,
+                              backgroundColor: cardCreated
+                                  ? Colors.green.shade400
+                                  : Colors.red.shade400,
+                              content: Text(
+                                cardCreated
+                                    ? 'Card added successfully'
+                                    : 'Card already exists',
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
+
                         clearControllers();
                         setState(() {
                           isNoun = false;

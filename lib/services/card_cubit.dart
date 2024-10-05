@@ -23,7 +23,7 @@ class CardCubit extends Cubit<List<database_model.Card>> {
     emit(cardList);
   }
 
-  Future<void> createCard({
+  Future<bool> createCard({
     required String language,
     required String category,
     required String frontContent,
@@ -35,19 +35,24 @@ class CardCubit extends Cubit<List<database_model.Card>> {
     String? pronunciation,
     String? exampleUsage,
   }) async {
-    await dBService.createCard(
-      language: language,
-      category: category,
-      frontContent: frontContent,
-      revealContent: revealContent,
-      lastReview: lastReview,
-      nextReviewDue: nextReviewDue,
-      gender: gender,
-      pluralForm: pluralForm,
-      pronunciation: pronunciation,
-      exampleUsage: exampleUsage,
-    );
-    await getCardList();
+    final bool cardMatch = await dBService.checkCardMatch(frontContent);
+
+    !cardMatch
+        ? await dBService.createCard(
+            language: language,
+            category: category,
+            frontContent: frontContent,
+            revealContent: revealContent,
+            lastReview: lastReview,
+            nextReviewDue: nextReviewDue,
+            gender: gender,
+            pluralForm: pluralForm,
+            pronunciation: pronunciation,
+            exampleUsage: exampleUsage,
+          )
+        : false;
+    await getCardsOfLang(language);
+    return !cardMatch;
   }
 
   Future<void> deleteCard(int id) async {

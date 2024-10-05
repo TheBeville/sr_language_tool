@@ -29,13 +29,6 @@ class _ReviewableCardState extends State<ReviewableCard> {
         ? GestureDetector(
             onTap: () {
               dBService.updateLastReview(widget.card.id, DateTime.now());
-              // dBService.updateNextReviewDue(
-              //   widget.card.id,
-              //   DateTime.now().add(
-              //     const Duration(days: 1),
-              //   ),
-              // );
-              // TODO: hasTapped property changes, but resets on UI rebuild
               setState(() {
                 hasTapped = true;
               });

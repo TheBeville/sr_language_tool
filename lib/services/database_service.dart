@@ -13,8 +13,6 @@ class DatabaseService {
 
   void initialiseDB() async {
     final List<Card> cardlist = await getAllCards();
-    // final List<Language> langList = await getAllLanguages();
-    // final List<Category> catList = await getAllCategories();
 
     cardlist.isEmpty ? isEmptyFunctions() : print('database loaded');
   }
@@ -56,6 +54,13 @@ class DatabaseService {
     return await dB.select(dB.cards).get();
   }
 
+  Future<List<Card>> getCardsOfLang(language) async {
+    final int langID = await getLangID(language);
+
+    return await (dB.select(dB.cards)..where((c) => c.language.equals(langID)))
+        .get();
+  }
+
   Future<List<Card>> getDueCards() async {
     final dateNow = DateTime.now();
 
@@ -67,11 +72,26 @@ class DatabaseService {
         .get();
   }
 
-  Future<List<Card>> getCardsOfLang(language) async {
+  Future<List<Card>> getDueCardsOfLang(String language) async {
     final int langID = await getLangID(language);
+    final dateNow = DateTime.now();
 
-    return await (dB.select(dB.cards)..where((c) => c.language.equals(langID)))
+    return await (dB.select(dB.cards)
+          ..where(
+            (c) => (c.language.equals(langID) &
+                (c.nextReviewDue.equals(dateNow) |
+                    c.nextReviewDue.isSmallerThanValue(dateNow))),
+          ))
         .get();
+  }
+
+  Future<bool> checkCardMatch(String frontContent) async {
+    final Card? cardMatch = await (dB.select(dB.cards)
+          ..where(
+            (tbl) => tbl.frontContent.equals(frontContent),
+          ))
+        .getSingleOrNull();
+    return cardMatch != null;
   }
 
   Future<void> createCard({

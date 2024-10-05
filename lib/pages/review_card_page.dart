@@ -23,6 +23,14 @@ class _ReviewCardPageState extends State<ReviewCardPage> {
   bool showFullCard = false;
 
   @override
+  void initState() {
+    super.initState();
+    context
+        .read<ReviewSessionCubit>()
+        .getDueCardsOfLang(widget.selectedLanguage);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
