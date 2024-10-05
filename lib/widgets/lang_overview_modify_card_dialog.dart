@@ -45,8 +45,7 @@ class _ModifyCardDialogState extends State<ModifyCardDialog> {
                 MaterialButton(
                   child: const Text('Delete'),
                   onPressed: () {
-                    dBService.deleteCard(widget.card.id);
-                    cardCubit.getCardList();
+                    context.read<CardCubit>().deleteCard(widget.card.id);
                     Navigator.of(context).pop();
                   },
                 ),

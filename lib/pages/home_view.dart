@@ -92,13 +92,11 @@ class _HomeViewState extends State<HomeView> {
                                       MaterialButton(
                                         child: const Text('Delete'),
                                         onPressed: () async {
-                                          final int? langID = await dBService
+                                          final int langID = await dBService
                                               .getLangID(selectedLanguage);
-                                          final int langIDOrDefault =
-                                              langID ?? 1;
+
                                           setState(() {
-                                            dBService
-                                                .deleteLang(langIDOrDefault);
+                                            dBService.deleteLang(langID);
                                           });
                                           if (context.mounted) {
                                             Navigator.of(context).pop();

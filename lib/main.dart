@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/pages/home_view.dart';
 import 'package:sr_language_tool/services/card_cubit.dart';
+import 'package:sr_language_tool/services/review_session_cubit.dart';
 import 'package:sr_language_tool/theme.dart';
 import 'package:sr_language_tool/services/database_service.dart';
 
@@ -18,8 +19,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => CardCubit(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<CardCubit>(
+          create: (context) => CardCubit(),
+        ),
+        BlocProvider<ReviewSessionCubit>(
+          create: (context) => ReviewSessionCubit(),
+        ),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: darkTheme,

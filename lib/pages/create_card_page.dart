@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sr_language_tool/constants.dart';
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/models/database.dart' as database_model;
+import 'package:sr_language_tool/services/card_cubit.dart';
 import 'package:sr_language_tool/services/database_service.dart';
 
 class CreateCardPage extends StatefulWidget {
@@ -39,26 +41,6 @@ class _CreateCardPageState extends State<CreateCardPage> {
     super.dispose();
   }
 
-  // TODO: validation to prevent creation of duplicates
-  void submitCardData() {
-    dBService.createCard(
-      language: languageController.text,
-      category: categoryController.text,
-      frontContent: frontContentController.text,
-      revealContent: revealContentController.text,
-      gender: isNoun ? genderController.text : null,
-      pluralForm: pluralController.text.isEmpty ? null : pluralController.text,
-      pronunciation: pronunciationController.text.isEmpty
-          ? null
-          : pronunciationController.text,
-      exampleUsage: exampleUsageController.text.isEmpty
-          ? null
-          : exampleUsageController.text,
-      lastReview: DateTime.now(),
-      nextReviewDue: DateTime.now().add(const Duration(minutes: 15)),
-    );
-  }
-
   void clearControllers() {
     categoryController.clear();
     frontContentController.clear();
@@ -81,183 +63,210 @@ class _CreateCardPageState extends State<CreateCardPage> {
             style: appBarTitleStyling,
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
+        body: BlocBuilder<CardCubit, List<database_model.Card>>(
+          builder: (context, cards) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
 
-                // Dropdown for language selection
-                FutureBuilder<List<database_model.Language>>(
-                  future: dBService.getAllLanguages(),
-                  builder: (context, snapshot) {
-                    final List<database_model.Language>? languages =
-                        snapshot.data;
+                    // Dropdown for language selection
+                    FutureBuilder<List<database_model.Language>>(
+                      future: dBService.getAllLanguages(),
+                      builder: (context, snapshot) {
+                        final List<database_model.Language>? languages =
+                            snapshot.data;
 
-                    if (snapshot.data == null) {
-                      return const CircularProgressIndicator();
-                    } else if (snapshot.hasData &&
-                        snapshot.connectionState == ConnectionState.done) {
-                      return DropdownMenu(
-                        controller: languageController,
-                        label: const Text('Language'),
-                        width: 342,
-                        initialSelection: widget.defaultLanguage ?? 1,
-                        menuStyle: MenuStyle(
-                          backgroundColor:
-                              WidgetStatePropertyAll(Colors.grey.shade800),
-                        ),
-                        dropdownMenuEntries: languages!.map((l) {
-                          return DropdownMenuEntry(
-                            value: l.language,
-                            label: l.language,
-                          );
-                        }).toList(),
-                      );
-                    } else {
-                      return const Text('Loading...');
-                    }
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Dropdown for word category selection
-                FutureBuilder<List<database_model.Category>>(
-                  future: dBService.getAllCategories(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData &&
-                        snapshot.connectionState == ConnectionState.done) {
-                      final List<database_model.Category> categories =
-                          snapshot.data!;
-
-                      return DropdownMenu(
-                        controller: categoryController,
-                        label: const Text('Word Class/Category'),
-                        width: 342,
-                        menuStyle: MenuStyle(
-                          backgroundColor:
-                              WidgetStatePropertyAll(Colors.grey.shade800),
-                        ),
-                        onSelected: (value) {
-                          setState(() {
-                            if (value == 'Noun') {
-                              isNoun = true;
-                            } else {
-                              isNoun = false;
-                            }
-                          });
-                        },
-                        dropdownMenuEntries: categories.map((c) {
-                          return DropdownMenuEntry(
-                            value: c.category,
-                            label: c.category,
-                          );
-                        }).toList(),
-                      );
-                    } else {
-                      return const Text('Loading...');
-                    }
-                  },
-                ),
-                // Adds dropdown to select noun gender if category == noun
-                isNoun
-                    ? Column(
-                        children: [
-                          const SizedBox(height: 20),
-                          DropdownMenu(
-                            controller: genderController,
+                        if (snapshot.data == null) {
+                          return const CircularProgressIndicator();
+                        } else if (snapshot.hasData &&
+                            snapshot.connectionState == ConnectionState.done) {
+                          return DropdownMenu(
+                            controller: languageController,
+                            label: const Text('Language'),
                             width: 342,
-                            label: const Text('Gender'),
-                            dropdownMenuEntries: const [
-                              DropdownMenuEntry(value: 'Masc.', label: 'Masc.'),
-                              DropdownMenuEntry(value: 'Fem.', label: 'Fem.'),
-                              DropdownMenuEntry(value: 'Neut.', label: 'Neut.'),
+                            initialSelection: widget.defaultLanguage ?? 1,
+                            menuStyle: MenuStyle(
+                              backgroundColor:
+                                  WidgetStatePropertyAll(Colors.grey.shade800),
+                            ),
+                            dropdownMenuEntries: languages!.map((l) {
+                              return DropdownMenuEntry(
+                                value: l.language,
+                                label: l.language,
+                              );
+                            }).toList(),
+                          );
+                        } else {
+                          return const Text('Loading...');
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Dropdown for word category selection
+                    FutureBuilder<List<database_model.Category>>(
+                      future: dBService.getAllCategories(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData &&
+                            snapshot.connectionState == ConnectionState.done) {
+                          final List<database_model.Category> categories =
+                              snapshot.data!;
+
+                          return DropdownMenu(
+                            controller: categoryController,
+                            label: const Text('Word Class/Category'),
+                            width: 342,
+                            menuStyle: MenuStyle(
+                              backgroundColor:
+                                  WidgetStatePropertyAll(Colors.grey.shade800),
+                            ),
+                            onSelected: (value) {
+                              setState(() {
+                                if (value == 'Noun') {
+                                  isNoun = true;
+                                } else {
+                                  isNoun = false;
+                                }
+                              });
+                            },
+                            dropdownMenuEntries: categories.map((c) {
+                              return DropdownMenuEntry(
+                                value: c.category,
+                                label: c.category,
+                              );
+                            }).toList(),
+                          );
+                        } else {
+                          return const Text('Loading...');
+                        }
+                      },
+                    ),
+                    // Adds dropdown to select noun gender if category == noun
+                    isNoun
+                        ? Column(
+                            children: [
+                              const SizedBox(height: 20),
+                              DropdownMenu(
+                                controller: genderController,
+                                width: 342,
+                                label: const Text('Gender'),
+                                dropdownMenuEntries: const [
+                                  DropdownMenuEntry(
+                                      value: 'Masc.', label: 'Masc.'),
+                                  DropdownMenuEntry(
+                                      value: 'Fem.', label: 'Fem.'),
+                                  DropdownMenuEntry(
+                                      value: 'Neut.', label: 'Neut.'),
+                                ],
+                              ),
                             ],
-                          ),
-                        ],
-                      )
-                    : const SizedBox(),
-                const SizedBox(height: createCardTextFieldSpace),
-                TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Front Content',
-                    hintText: 'Enter text for front of card...',
-                  ),
-                  controller: frontContentController,
-                ),
-                const SizedBox(height: createCardTextFieldSpace),
-                TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Reveal Content',
-                    hintText: 'Enter text to be revealed...',
-                  ),
-                  controller: revealContentController,
-                ),
-                // adds field for plural form if category = noun
-                isNoun
-                    ? Column(
-                        children: [
-                          const SizedBox(height: createCardTextFieldSpace),
-                          TextField(
-                            controller: pluralController,
-                            decoration: const InputDecoration(
-                              labelText: 'Plural Form (Optional)',
-                              hintText: 'Enter the plural form of the noun',
+                          )
+                        : const SizedBox(),
+                    const SizedBox(height: createCardTextFieldSpace),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Front Content',
+                        hintText: 'Enter text for front of card...',
+                      ),
+                      controller: frontContentController,
+                    ),
+                    const SizedBox(height: createCardTextFieldSpace),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Reveal Content',
+                        hintText: 'Enter text to be revealed...',
+                      ),
+                      controller: revealContentController,
+                    ),
+                    // adds field for plural form if category = noun
+                    isNoun
+                        ? Column(
+                            children: [
+                              const SizedBox(height: createCardTextFieldSpace),
+                              TextField(
+                                controller: pluralController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Plural Form (Optional)',
+                                  hintText: 'Enter the plural form of the noun',
+                                ),
+                              ),
+                            ],
+                          )
+                        : const SizedBox(),
+                    const SizedBox(height: createCardTextFieldSpace),
+                    TextField(
+                      controller: pronunciationController,
+                      decoration: const InputDecoration(
+                        labelText: 'Pronunciation (Optional)',
+                        hintText: 'Add pronunciation guideline',
+                      ),
+                    ),
+                    const SizedBox(height: createCardTextFieldSpace),
+                    TextField(
+                      controller: exampleUsageController,
+                      decoration: const InputDecoration(
+                        labelText: 'Example Usage (Optional)',
+                        hintText: 'Enter an example of usage',
+                      ),
+                    ),
+                    const SizedBox(height: 50),
+                    ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor:
+                            WidgetStatePropertyAll(Colors.grey.shade200),
+                      ),
+                      onPressed: () {
+                        // TODO: validation to prevent creation of duplicates
+                        context.read<CardCubit>().createCard(
+                              language: languageController.text,
+                              category: categoryController.text,
+                              frontContent: frontContentController.text,
+                              revealContent: revealContentController.text,
+                              gender: isNoun ? genderController.text : null,
+                              pluralForm: pluralController.text.isEmpty
+                                  ? null
+                                  : pluralController.text,
+                              pronunciation:
+                                  pronunciationController.text.isEmpty
+                                      ? null
+                                      : pronunciationController.text,
+                              exampleUsage: exampleUsageController.text.isEmpty
+                                  ? null
+                                  : exampleUsageController.text,
+                              lastReview: DateTime.now(),
+                              nextReviewDue: DateTime.now()
+                                  .add(const Duration(minutes: 15)),
+                            );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            behavior: SnackBarBehavior.floating,
+                            showCloseIcon: true,
+                            content: Text(
+                              'Card added successfully',
                             ),
                           ),
-                        ],
-                      )
-                    : const SizedBox(),
-                const SizedBox(height: createCardTextFieldSpace),
-                TextField(
-                  controller: pronunciationController,
-                  decoration: const InputDecoration(
-                    labelText: 'Pronunciation (Optional)',
-                    hintText: 'Add pronunciation guideline',
-                  ),
-                ),
-                const SizedBox(height: createCardTextFieldSpace),
-                TextField(
-                  controller: exampleUsageController,
-                  decoration: const InputDecoration(
-                    labelText: 'Example Usage (Optional)',
-                    hintText: 'Enter an example of usage',
-                  ),
-                ),
-                const SizedBox(height: 50),
-                ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor:
-                        WidgetStatePropertyAll(Colors.grey.shade200),
-                  ),
-                  onPressed: () {
-                    submitCardData();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        behavior: SnackBarBehavior.floating,
-                        showCloseIcon: true,
-                        content: Text(
-                          'Card added successfully',
+                        );
+                        clearControllers();
+                        setState(() {
+                          isNoun = false;
+                        });
+                      },
+                      child: Text(
+                        'Create',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Theme.of(context).primaryColor,
                         ),
                       ),
-                    );
-                    clearControllers();
-                    setState(() {
-                      isNoun = false;
-                    });
-                  },
-                  child: Text(
-                    'Create',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Theme.of(context).primaryColor,
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );

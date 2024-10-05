@@ -50,139 +50,79 @@ class _ReviewableCardState extends State<ReviewableCard> {
               ),
             ),
           )
-        : Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Spacer(),
-              Text(
-                widget.card.frontContent,
-                style: const TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
+        : Center(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              // mainAxisSize: MainAxisSize.min,
+              children: [
+                // const Spacer(),
+                Text(
+                  widget.card.frontContent,
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(
-                width: 342,
-                height: 1,
-                child: Divider(
-                  height: 25,
-                  thickness: 1,
+                const SizedBox(
+                  width: 342,
+                  child: Divider(
+                    height: 10,
+                    thickness: 1,
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25),
-                child: Row(
-                  children: [
-                    FutureBuilder<String?>(
-                      future: dBService.getCatByID(widget.card.category),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData || snapshot.data == null) {
-                          return const Text('Cat. not found');
-                        } else {
-                          return Text(
-                            '[${snapshot.data!}]',
-                            style: cardInfoStyling,
-                          );
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 2),
-                    widget.card.gender == null
-                        ? const SizedBox()
-                        : Text(
-                            '[${widget.card.gender}]',
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25),
+                  child: Row(
+                    children: [
+                      FutureBuilder<String?>(
+                        future: dBService.getCatByID(widget.card.category),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData || snapshot.data == null) {
+                            return const Text('Cat. not found');
+                          } else {
+                            return Text(
+                              '[${snapshot.data!}]',
+                              style: cardInfoStyling,
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 2),
+                      widget.card.gender == null
+                          ? const SizedBox()
+                          : Text(
+                              '[${widget.card.gender}]',
+                              style: cardInfoStyling,
+                            ),
+                      const SizedBox(width: 2),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Text(
+                  widget.card.revealContent,
+                  style: const TextStyle(fontSize: 30),
+                ),
+                widget.card.pluralForm == null
+                    ? const SizedBox(height: 30)
+                    : Column(
+                        children: [
+                          Text(
+                            '(plural: ${widget.card.pluralForm})',
                             style: cardInfoStyling,
                           ),
-                    const SizedBox(width: 2),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 15),
-              Text(
-                widget.card.revealContent,
-                style: const TextStyle(fontSize: 28),
-              ),
-              widget.card.pluralForm == null
-                  ? const SizedBox(height: 30)
-                  : Column(
-                      children: [
-                        Text(
-                          '(plural: ${widget.card.pluralForm})',
-                          style: cardInfoStyling,
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                    ),
-              const Spacer(),
-              // Row(
-              //   crossAxisAlignment: CrossAxisAlignment.stretch,
-              //   children: [
-              //     Container(
-              //       decoration: BoxDecoration(
-              //         border: Border.all(width: 1, style: BorderStyle.solid),
-              //       ),
-              //       child: const Column(
-              //         children: [
-              //           Text(
-              //             'Incorrect',
-              //             style: TextStyle(color: Colors.red),
-              //           ),
-              //           Text('review date'),
-              //         ],
-              //       ),
-              //     ),
-              //     Container(
-              //       decoration: BoxDecoration(
-              //         border: Border.all(width: 1, style: BorderStyle.solid),
-              //       ),
-              //       child: const Column(
-              //         children: [
-              //           Text(
-              //             'Difficult',
-              //             style: TextStyle(color: Colors.amber),
-              //           ),
-              //           Text('review date'),
-              //         ],
-              //       ),
-              //     ),
-              //     Container(
-              //       decoration: BoxDecoration(
-              //         border: Border.all(width: 1, style: BorderStyle.solid),
-              //       ),
-              //       child: const Column(
-              //         children: [
-              //           Text(
-              //             'Correct',
-              //             style: TextStyle(color: Colors.green),
-              //           ),
-              //           Text('review date'),
-              //         ],
-              //       ),
-              //     ),
-              //     Container(
-              //       decoration: BoxDecoration(
-              //         border: Border.all(width: 1, style: BorderStyle.solid),
-              //       ),
-              //       child: const Column(
-              //         children: [
-              //           Text(
-              //             'Easy',
-              //             style: TextStyle(color: Colors.blue),
-              //           ),
-              //           Text('review date'),
-              //         ],
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              Text(
-                'Last reviewed: ${widget.card.lastReview}',
-                style: const TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 10),
-            ],
+                          const SizedBox(height: 10),
+                        ],
+                      ),
+                // const Spacer(),
+
+                // Text(
+                //   'Last reviewed: ${widget.card.lastReview}',
+                //   style: const TextStyle(fontSize: 14),
+                // ),
+              ],
+            ),
           );
   }
 }

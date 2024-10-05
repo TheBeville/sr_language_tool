@@ -7,31 +7,9 @@ import 'dart:io';
 class DatabaseService {
   final dB = locator.get<AppDatabase>();
 
-  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ \\
-  // @ CAUTION: DELETES DATABASE FILE @ \\
-  // @  USE ONLY WHEN IT'S NECESSARY  @ \\
-  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ \\
-  Future<void> clearData() async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final dbPath =
-          '${directory.path}/app_database.sqlite'; // Replace with your actual database name if different
-      final dbFile = File(dbPath);
-
-      if (await dbFile.exists()) {
-        await dbFile.delete();
-        print('Database file deleted');
-      } else {
-        print('Database file not found');
-      }
-    } catch (e) {
-      print('Error deleting database: $e');
-    }
-  }
-
-  // @@@@@@@@@@@@@@@@@@@@@@@@ \\
-  // @ INITIALISATION STUFF @ \\
-  // @@@@@@@@@@@@@@@@@@@@@@@@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@@@@ \\
+  // @| INITIALISATION STUFF |@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@@@@ \\
 
   void initialiseDB() async {
     final List<Card> cardlist = await getAllCards();
@@ -70,20 +48,29 @@ class DatabaseService {
     );
   }
 
-  // @@@@@@@@@@@@@@@@@@@@@@ \\
-  // @ CARD-RELATED STUFF @ \\
-  // @@@@@@@@@@@@@@@@@@@@@@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@@ \\
+  // @| CARD-RELATED STUFF |@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@@ \\
 
   Future<List<Card>> getAllCards() async {
     return await dB.select(dB.cards).get();
   }
 
-  Future<List<Card>> getCardsOfLang(language) async {
-    final int? langID = await getLangID(language);
-    final int langIDOrDefault = langID ?? 1;
+  Future<List<Card>> getDueCards() async {
+    final dateNow = DateTime.now();
 
     return await (dB.select(dB.cards)
-          ..where((c) => c.language.equals(langIDOrDefault)))
+          ..where(
+            (c) => (c.nextReviewDue.equals(dateNow) |
+                c.nextReviewDue.isSmallerThanValue(dateNow)),
+          ))
+        .get();
+  }
+
+  Future<List<Card>> getCardsOfLang(language) async {
+    final int langID = await getLangID(language);
+
+    return await (dB.select(dB.cards)..where((c) => c.language.equals(langID)))
         .get();
   }
 
@@ -99,18 +86,16 @@ class DatabaseService {
     String? pronunciation,
     String? exampleUsage,
   }) async {
-    final int? langID = await getLangID(language);
-    final int langIDOrDefault = langID ?? 1;
-    final int? catID = await getCatID(category);
-    final int catIDOrDefault = catID ?? 1;
+    final int langID = await getLangID(language);
+    final int catID = await getCatID(category);
 
     category = dB.select(dB.categories)
       ..where((c) => c.category.equals(category));
     category.map((column) => column.id).get();
     await dB.into(dB.cards).insert(
           CardsCompanion.insert(
-            language: langIDOrDefault,
-            category: catIDOrDefault,
+            language: langID,
+            category: catID,
             frontContent: frontContent,
             revealContent: revealContent,
             gender: Value(gender),
@@ -147,21 +132,21 @@ class DatabaseService {
     );
   }
 
-  // @@@@@@@@@@@@@@@@@@@@@@@ \\
-  // @ LANGUAGE CAT. STUFF @ \\
-  // @@@@@@@@@@@@@@@@@@@@@@@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@@@ \\
+  // @| LANGUAGE CAT. STUFF |@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@@@ \\
 
   Future<List<Language>> getAllLanguages() async {
     return await dB.select(dB.languages).get();
   }
 
   // gets the id/primary key for given String in languages table
-  Future<int?> getLangID(String language) async {
+  Future<int> getLangID(String language) async {
     final query = dB.select(dB.languages)
       ..where((tbl) => tbl.language.equals(language));
     final lang = await query.getSingleOrNull();
 
-    return lang?.id;
+    return lang?.id ?? 1;
   }
 
   void createLangCat(language) async {
@@ -176,9 +161,9 @@ class DatabaseService {
         .go();
   }
 
-  // @@@@@@@@@@@@@@@@@@@@@@@ \\
-  // @ WORD CATEGORY STUFF @ \\
-  // @@@@@@@@@@@@@@@@@@@@@@@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@@@ \\
+  // @| WORD CATEGORY STUFF |@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@@@ \\
 
   Future<List<Category>> getAllCategories() async {
     return await dB.select(dB.categories).get();
@@ -193,12 +178,12 @@ class DatabaseService {
   }
 
   // gets the id/primary key for given String in categories table
-  Future<int?> getCatID(String category) async {
+  Future<int> getCatID(String category) async {
     final query = dB.select(dB.categories)
       ..where((tbl) => tbl.category.equals(category));
     final cat = await query.getSingleOrNull();
 
-    return cat?.id;
+    return cat?.id ?? 1;
   }
 
   void createCategory(category) async {
@@ -211,5 +196,27 @@ class DatabaseService {
     return (dB.delete(dB.categories)
           ..where((category) => category.id.equals(id)))
         .go();
+  }
+
+  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ \\
+  // @| CAUTION: DELETES DATABASE FILE |@ \\
+  // @|  USE ONLY WHEN IT'S NECESSARY  |@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ \\
+  Future<void> clearData() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final dbPath =
+          '${directory.path}/app_database.sqlite'; // Replace with your actual database name if different
+      final dbFile = File(dbPath);
+
+      if (await dbFile.exists()) {
+        await dbFile.delete();
+        print('Database file deleted');
+      } else {
+        print('Database file not found');
+      }
+    } catch (e) {
+      print('Error deleting database: $e');
+    }
   }
 }

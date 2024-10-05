@@ -16,4 +16,36 @@ class CardCubit extends Cubit<List<database_model.Card>> {
 
     emit(cardList);
   }
+
+  Future<void> createCard({
+    required String language,
+    required String category,
+    required String frontContent,
+    required String revealContent,
+    required DateTime lastReview,
+    required DateTime nextReviewDue,
+    String? gender,
+    String? pluralForm,
+    String? pronunciation,
+    String? exampleUsage,
+  }) async {
+    await dBService.createCard(
+      language: language,
+      category: category,
+      frontContent: frontContent,
+      revealContent: revealContent,
+      lastReview: lastReview,
+      nextReviewDue: nextReviewDue,
+      gender: gender,
+      pluralForm: pluralForm,
+      pronunciation: pronunciation,
+      exampleUsage: exampleUsage,
+    );
+    await getCardList();
+  }
+
+  Future<void> deleteCard(int id) async {
+    await dBService.deleteCard(id);
+    await getCardList();
+  }
 }

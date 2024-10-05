@@ -66,9 +66,6 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
                 itemCount: cards.length,
                 itemBuilder: (context, index) {
                   final card = cards[index];
-                  // final bool isReviewDue =
-                  //     card.lastReview.isAfter(card.nextReviewDue) ||
-                  //         card.lastReview.isAtSameMomentAs(card.nextReviewDue);
 
                   return Column(
                     children: [
@@ -124,26 +121,6 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
                 },
               ),
             );
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 22),
-            //   child: SingleChildScrollView(
-            //     child: Column(
-            //       crossAxisAlignment: CrossAxisAlignment.start,
-            //       // TODO: doesn't change isReviewDue for each new card
-            //       children: cards.map((card) {
-            //         final bool isReviewDue = card.lastReview
-            //                 .isAfter(card.nextReviewDue) ||
-            //             card.lastReview.isAtSameMomentAs(card.nextReviewDue);
-
-            //         return Column(
-            //           children: [
-            //             const Divider(height: 1),
-            //           ],
-            //         );
-            //       }).toList(),
-            //     ),
-            //   ),
-            // );
           },
         ),
         floatingActionButton: FloatingActionButton(
