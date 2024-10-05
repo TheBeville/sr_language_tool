@@ -24,6 +24,12 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
   final dBService = locator.get<DatabaseService>();
 
   @override
+  void initState() {
+    super.initState();
+    context.read<CardCubit>().getCardsOfLang(widget.selectedLanguage);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
@@ -60,12 +66,21 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
         ),
         body: BlocBuilder<CardCubit, List<database_model.Card>>(
           builder: (context, cards) {
+            cards.sort(
+              (a, b) => a.frontContent
+                  .toLowerCase()
+                  .compareTo(b.frontContent.toLowerCase()),
+            );
+
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 22),
               child: ListView.builder(
                 itemCount: cards.length,
                 itemBuilder: (context, index) {
                   final card = cards[index];
+                  final bool isDue =
+                      card.nextReviewDue.isBefore(DateTime.now()) ||
+                          card.nextReviewDue.isAtSameMomentAs(DateTime.now());
 
                   return Column(
                     children: [
@@ -78,15 +93,11 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
                               style: const TextStyle(fontSize: 18),
                             ),
                             Text(
-                              'Due: ${card.nextReviewDue.day}/${card.nextReviewDue.month}/${card.nextReviewDue.year}',
+                              isDue
+                                  ? 'Due Now'
+                                  : 'Due: ${card.nextReviewDue.day}/${card.nextReviewDue.month}/${card.nextReviewDue.year}',
                               style: TextStyle(
-                                color: (card.lastReview
-                                            .isAfter(card.nextReviewDue) ||
-                                        card.lastReview.isAtSameMomentAs(
-                                          card.nextReviewDue,
-                                        ))
-                                    ? Colors.red
-                                    : Colors.white,
+                                color: isDue ? Colors.red : Colors.white,
                                 fontSize: 18,
                               ),
                             ),
@@ -111,7 +122,7 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
                         onLongPress: () {
                           showDialog(
                             context: context,
-                            builder: (context) => ModifyCardDialog(card: card),
+                            builder: (_) => ModifyCardDialog(card: card),
                           );
                         },
                       ),

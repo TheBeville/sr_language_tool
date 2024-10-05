@@ -17,6 +17,12 @@ class CardCubit extends Cubit<List<database_model.Card>> {
     emit(cardList);
   }
 
+  Future<void> getCardsOfLang(String language) async {
+    final cardList = await dBService.getCardsOfLang(language);
+
+    emit(cardList);
+  }
+
   Future<void> createCard({
     required String language,
     required String category,

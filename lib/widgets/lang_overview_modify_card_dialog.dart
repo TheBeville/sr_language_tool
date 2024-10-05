@@ -18,7 +18,6 @@ class ModifyCardDialog extends StatefulWidget {
 class _ModifyCardDialogState extends State<ModifyCardDialog> {
   final dB = locator.get<database_model.AppDatabase>();
   final dBService = locator.get<DatabaseService>();
-  final cardCubit = locator.get<CardCubit>();
 
   @override
   Widget build(BuildContext context) {

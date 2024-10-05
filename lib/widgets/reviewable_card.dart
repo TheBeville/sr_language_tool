@@ -29,12 +29,12 @@ class _ReviewableCardState extends State<ReviewableCard> {
         ? GestureDetector(
             onTap: () {
               dBService.updateLastReview(widget.card.id, DateTime.now());
-              dBService.updateNextReviewDue(
-                widget.card.id,
-                DateTime.now().add(
-                  const Duration(days: 1),
-                ),
-              );
+              // dBService.updateNextReviewDue(
+              //   widget.card.id,
+              //   DateTime.now().add(
+              //     const Duration(days: 1),
+              //   ),
+              // );
               // TODO: hasTapped property changes, but resets on UI rebuild
               setState(() {
                 hasTapped = true;
@@ -54,9 +54,7 @@ class _ReviewableCardState extends State<ReviewableCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
-              // mainAxisSize: MainAxisSize.min,
               children: [
-                // const Spacer(),
                 Text(
                   widget.card.frontContent,
                   style: const TextStyle(
@@ -115,12 +113,6 @@ class _ReviewableCardState extends State<ReviewableCard> {
                           const SizedBox(height: 10),
                         ],
                       ),
-                // const Spacer(),
-
-                // Text(
-                //   'Last reviewed: ${widget.card.lastReview}',
-                //   style: const TextStyle(fontSize: 14),
-                // ),
               ],
             ),
           );

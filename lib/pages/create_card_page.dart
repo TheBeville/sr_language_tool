@@ -155,11 +155,17 @@ class _CreateCardPageState extends State<CreateCardPage> {
                                 label: const Text('Gender'),
                                 dropdownMenuEntries: const [
                                   DropdownMenuEntry(
-                                      value: 'Masc.', label: 'Masc.'),
+                                    value: 'Masc.',
+                                    label: 'Masc.',
+                                  ),
                                   DropdownMenuEntry(
-                                      value: 'Fem.', label: 'Fem.'),
+                                    value: 'Fem.',
+                                    label: 'Fem.',
+                                  ),
                                   DropdownMenuEntry(
-                                      value: 'Neut.', label: 'Neut.'),
+                                    value: 'Neut.',
+                                    label: 'Neut.',
+                                  ),
                                 ],
                               ),
                             ],
