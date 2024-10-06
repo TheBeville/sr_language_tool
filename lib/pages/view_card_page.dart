@@ -3,7 +3,7 @@ import 'package:sr_language_tool/constants.dart';
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/models/database.dart' as database_model;
 import 'package:sr_language_tool/services/database_service.dart';
-import 'package:sr_language_tool/widgets/reviewable_card.dart';
+import 'package:sr_language_tool/widgets/viewable_card.dart';
 
 class ViewCardPage extends StatelessWidget {
   ViewCardPage({
@@ -27,7 +27,7 @@ class ViewCardPage extends StatelessWidget {
             style: appBarTitleStyling,
           ),
         ),
-        body: ReviewableCard(card: card, userHasTapped: true),
+        body: ViewableCard(card: card),
       ),
     );
   }

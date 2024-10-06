@@ -132,6 +132,7 @@ class DatabaseService {
     return (dB.delete(dB.cards)..where((card) => card.id.equals(id))).go();
   }
 
+  // TODO: refactor so values from create card page can be passed in
   Future<void> updateCard(Card card) async {
     await dB.update(dB.cards).replace(card);
   }
@@ -167,6 +168,14 @@ class DatabaseService {
     final lang = await query.getSingleOrNull();
 
     return lang?.id ?? 1;
+  }
+
+  Future<String> getLangByID(int langID) async {
+    final language = await (dB.select(dB.languages)
+          ..where((tbl) => tbl.id.equals(langID)))
+        .getSingleOrNull();
+
+    return language?.language ?? 'Example Language';
   }
 
   void createLangCat(language) async {

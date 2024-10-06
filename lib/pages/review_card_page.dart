@@ -5,7 +5,7 @@ import 'package:sr_language_tool/models/database.dart' as database_model;
 import 'package:sr_language_tool/services/card_cubit.dart';
 import 'package:sr_language_tool/services/database_service.dart';
 import 'package:sr_language_tool/services/review_session_cubit.dart';
-import 'package:sr_language_tool/widgets/reviewable_card.dart';
+import 'package:sr_language_tool/widgets/viewable_card.dart';
 
 class ReviewCardPage extends StatefulWidget {
   const ReviewCardPage({required this.selectedLanguage, super.key});
@@ -54,9 +54,8 @@ class _ReviewCardPageState extends State<ReviewCardPage> {
                           children: [
                             Expanded(
                               child: Center(
-                                child: ReviewableCard(
+                                child: ViewableCard(
                                   card: dueCards[currentCardIndex],
-                                  userHasTapped: true,
                                 ),
                               ),
                             ),
@@ -94,11 +93,18 @@ class _ReviewCardPageState extends State<ReviewCardPage> {
                                           cardId: dueCards[currentCardIndex].id,
                                           isCorrect: true,
                                         );
-                                    context.read<CardCubit>().getCardList();
-                                    setState(() {
-                                      currentCardIndex++;
-                                      showFullCard = false;
-                                    });
+                                    context.read<CardCubit>().getCardsOfLang(
+                                          widget.selectedLanguage,
+                                        );
+                                    if (dueCards.length >
+                                        currentCardIndex + 1) {
+                                      setState(() {
+                                        currentCardIndex++;
+                                        showFullCard = false;
+                                      });
+                                    } else {
+                                      Navigator.pop(context);
+                                    }
                                   },
                                   child: Text(
                                     'Correct',

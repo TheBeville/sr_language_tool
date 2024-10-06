@@ -209,7 +209,8 @@ class _HomeViewState extends State<HomeView> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const CreateCardPage(),
+                builder: (context) =>
+                    const CreateCardPage(appBarTitle: 'Create Card'),
               ),
             );
           },

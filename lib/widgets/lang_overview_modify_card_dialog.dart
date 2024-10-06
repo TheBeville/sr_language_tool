@@ -36,16 +36,25 @@ class _ModifyCardDialogState extends State<ModifyCardDialog> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const CreateCardPage(),
+                        builder: (context) => CreateCardPage(
+                          appBarTitle: 'Edit Card',
+                          card: widget.card,
+                        ),
                       ),
                     );
                   },
                 ),
                 MaterialButton(
                   child: const Text('Delete'),
-                  onPressed: () {
-                    context.read<CardCubit>().deleteCard(widget.card.id);
-                    Navigator.of(context).pop();
+                  onPressed: () async {
+                    final language =
+                        await dBService.getLangByID(widget.card.language);
+                    if (context.mounted) {
+                      await context
+                          .read<CardCubit>()
+                          .deleteCard(widget.card.id, language);
+                      if (context.mounted) Navigator.of(context).pop();
+                    }
                   },
                 ),
                 MaterialButton(

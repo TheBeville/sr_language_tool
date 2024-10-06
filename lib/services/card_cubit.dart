@@ -55,8 +55,13 @@ class CardCubit extends Cubit<List<database_model.Card>> {
     return !cardMatch;
   }
 
-  Future<void> deleteCard(int id) async {
+  Future<bool> modifyCard(card) async {
+    await dBService.updateCard(card);
+    return true;
+  }
+
+  Future<void> deleteCard(int id, String language) async {
     await dBService.deleteCard(id);
-    await getCardList();
+    await getCardsOfLang(language);
   }
 }

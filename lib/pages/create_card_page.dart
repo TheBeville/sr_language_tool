@@ -7,9 +7,16 @@ import 'package:sr_language_tool/services/card_cubit.dart';
 import 'package:sr_language_tool/services/database_service.dart';
 
 class CreateCardPage extends StatefulWidget {
-  const CreateCardPage({this.defaultLanguage, super.key});
+  const CreateCardPage({
+    required this.appBarTitle,
+    this.defaultLanguage,
+    this.card,
+    super.key,
+  });
 
   final String? defaultLanguage;
+  final String appBarTitle;
+  final database_model.Card? card;
 
   @override
   State<CreateCardPage> createState() => _CreateCardPageState();
@@ -27,6 +34,39 @@ class _CreateCardPageState extends State<CreateCardPage> {
   final TextEditingController pluralController = TextEditingController();
   final TextEditingController pronunciationController = TextEditingController();
   final TextEditingController exampleUsageController = TextEditingController();
+
+  bool isNoun = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize controllers with values from the provided card, if any
+    if (widget.card != null) {
+      final card = widget.card!;
+      languageController.text = widget.defaultLanguage ?? '';
+      dBService.getCatByID(card.category).then((category) {
+        categoryController.text = category ?? '';
+      });
+      frontContentController.text = card.frontContent;
+      revealContentController.text = card.revealContent;
+      genderController.text = card.gender ?? '';
+      pluralController.text = card.pluralForm ?? '';
+      pronunciationController.text = card.pronunciation ?? '';
+      exampleUsageController.text = card.exampleUsage ?? '';
+
+      // Set isNoun based on the category
+      dBService.getCatByID(card.category).then((category) {
+        if (category == 'Noun') {
+          setState(() {
+            isNoun = true;
+          });
+        }
+      });
+    } else if (widget.defaultLanguage != null) {
+      languageController.text = widget.defaultLanguage!;
+    }
+  }
 
   @override
   void dispose() {
@@ -51,15 +91,15 @@ class _CreateCardPageState extends State<CreateCardPage> {
     exampleUsageController.clear();
   }
 
-  bool isNoun = false;
-
   @override
   Widget build(BuildContext context) {
+    String appBarTitle = widget.appBarTitle;
+
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(
-            'CREATE CARD',
+          title: Text(
+            appBarTitle,
             style: appBarTitleStyling,
           ),
         ),
@@ -119,6 +159,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
                             controller: categoryController,
                             label: const Text('Word Class/Category'),
                             width: 342,
+                            initialSelection: widget.card?.category ?? 1,
                             menuStyle: MenuStyle(
                               backgroundColor:
                                   WidgetStatePropertyAll(Colors.grey.shade800),
@@ -153,6 +194,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
                                 controller: genderController,
                                 width: 342,
                                 label: const Text('Gender'),
+                                initialSelection: widget.card?.gender ?? 1,
                                 dropdownMenuEntries: const [
                                   DropdownMenuEntry(
                                     value: 'Masc.',
@@ -187,7 +229,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
                       ),
                       controller: revealContentController,
                     ),
-                    // adds field for plural form if category = noun
+                    // Adds field for plural form if category = noun
                     isNoun
                         ? Column(
                             children: [
@@ -225,8 +267,11 @@ class _CreateCardPageState extends State<CreateCardPage> {
                             WidgetStatePropertyAll(Colors.grey.shade200),
                       ),
                       onPressed: () async {
-                        final bool cardCreated =
-                            await context.read<CardCubit>().createCard(
+                        final bool cardCreated;
+                        widget.card == null
+                            ? cardCreated = await context
+                                .read<CardCubit>()
+                                .createCard(
                                   language: languageController.text,
                                   category: categoryController.text,
                                   frontContent: frontContentController.text,
@@ -246,7 +291,10 @@ class _CreateCardPageState extends State<CreateCardPage> {
                                   lastReview: DateTime.now(),
                                   nextReviewDue: DateTime.now()
                                       .add(const Duration(minutes: 15)),
-                                );
+                                )
+                            : cardCreated = await context
+                                .read<CardCubit>()
+                                .modifyCard(widget.card!);
 
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -257,14 +305,20 @@ class _CreateCardPageState extends State<CreateCardPage> {
                                   ? Colors.green.shade400
                                   : Colors.red.shade400,
                               content: Text(
-                                cardCreated
-                                    ? 'Card added successfully'
-                                    : 'Card already exists',
+                                (widget.appBarTitle == 'Create Card')
+                                    ? (cardCreated
+                                        ? 'Card added successfully'
+                                        : 'Card already exists')
+                                    : 'Card modified',
                               ),
                             ),
                           );
+                          if (widget.appBarTitle == 'Edit Card') {
+                            setState(() {
+                              appBarTitle = 'Create Card';
+                            });
+                          }
                         }
-
                         clearControllers();
                         setState(() {
                           isNoun = false;

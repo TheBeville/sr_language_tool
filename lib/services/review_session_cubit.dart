@@ -23,6 +23,8 @@ class ReviewSessionCubit extends Cubit<List<database_model.Card>> {
     emit(dueCards);
   }
 
+  // TODO: refactor into switch statement when more options given
+  // for difficulty of remembering card.
   Future<void> updateCardReviewStatus({
     required int cardId,
     required bool isCorrect,

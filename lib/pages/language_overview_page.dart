@@ -146,8 +146,10 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    CreateCardPage(defaultLanguage: widget.selectedLanguage),
+                builder: (context) => CreateCardPage(
+                  appBarTitle: 'Create Card',
+                  defaultLanguage: widget.selectedLanguage,
+                ),
               ),
             );
           },
