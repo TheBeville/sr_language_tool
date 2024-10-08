@@ -30,6 +30,12 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    context.read<CardCubit>().getCardsOfLang(widget.selectedLanguage);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(

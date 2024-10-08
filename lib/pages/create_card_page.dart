@@ -294,7 +294,27 @@ class _CreateCardPageState extends State<CreateCardPage> {
                                 )
                             : cardCreated = await context
                                 .read<CardCubit>()
-                                .modifyCard(widget.card!);
+                                .modifyCard(
+                                  id: widget.card!.id,
+                                  language: languageController.text,
+                                  category: categoryController.text,
+                                  frontContent: frontContentController.text,
+                                  revealContent: revealContentController.text,
+                                  gender: isNoun ? genderController.text : null,
+                                  pluralForm: pluralController.text.isEmpty
+                                      ? null
+                                      : pluralController.text,
+                                  pronunciation:
+                                      pronunciationController.text.isEmpty
+                                          ? null
+                                          : pronunciationController.text,
+                                  exampleUsage:
+                                      exampleUsageController.text.isEmpty
+                                          ? null
+                                          : exampleUsageController.text,
+                                  lastReview: widget.card!.lastReview,
+                                  nextReviewDue: widget.card!.nextReviewDue,
+                                );
 
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(

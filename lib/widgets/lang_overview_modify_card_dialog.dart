@@ -31,17 +31,22 @@ class _ModifyCardDialogState extends State<ModifyCardDialog> {
               children: [
                 MaterialButton(
                   child: const Text('Edit'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CreateCardPage(
-                          appBarTitle: 'Edit Card',
-                          card: widget.card,
+                  onPressed: () async {
+                    final language =
+                        await dBService.getLangByID(widget.card.language);
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CreateCardPage(
+                            appBarTitle: 'Edit Card',
+                            card: widget.card,
+                            defaultLanguage: language,
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    }
                   },
                 ),
                 MaterialButton(

@@ -132,9 +132,37 @@ class DatabaseService {
     return (dB.delete(dB.cards)..where((card) => card.id.equals(id))).go();
   }
 
-  // TODO: refactor so values from create card page can be passed in
-  Future<void> updateCard(Card card) async {
-    await dB.update(dB.cards).replace(card);
+  Future<void> updateCard({
+    required int id,
+    required language,
+    required category,
+    required String frontContent,
+    required String revealContent,
+    required DateTime lastReview,
+    required DateTime nextReviewDue,
+    String? gender,
+    String? pluralForm,
+    String? pronunciation,
+    String? exampleUsage,
+  }) async {
+    final int langID = await getLangID(language);
+    final int catID = await getCatID(category);
+
+    await dB.update(dB.cards).replace(
+          CardsCompanion(
+            id: Value(id),
+            language: Value(langID),
+            category: Value(catID),
+            frontContent: Value(frontContent),
+            revealContent: Value(revealContent),
+            gender: Value(gender),
+            pluralForm: Value(pluralForm),
+            pronunciation: Value(pronunciation),
+            exampleUsage: Value(exampleUsage),
+            lastReview: Value(lastReview),
+            nextReviewDue: Value(nextReviewDue),
+          ),
+        );
   }
 
   Future<void> updateLastReview(int cardID, DateTime newDate) async {

@@ -55,8 +55,33 @@ class CardCubit extends Cubit<List<database_model.Card>> {
     return !cardMatch;
   }
 
-  Future<bool> modifyCard(card) async {
-    await dBService.updateCard(card);
+  Future<bool> modifyCard({
+    required int id,
+    required String language,
+    required String category,
+    required String frontContent,
+    required String revealContent,
+    required DateTime lastReview,
+    required DateTime nextReviewDue,
+    String? gender,
+    String? pluralForm,
+    String? pronunciation,
+    String? exampleUsage,
+  }) async {
+    await dBService.updateCard(
+      id: id,
+      language: language,
+      category: category,
+      frontContent: frontContent,
+      revealContent: revealContent,
+      lastReview: lastReview,
+      nextReviewDue: nextReviewDue,
+      gender: gender,
+      pluralForm: pluralForm,
+      pronunciation: pronunciation,
+      exampleUsage: exampleUsage,
+    );
+    await getCardsOfLang(language);
     return true;
   }
 
