@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sr_language_tool/constants.dart';
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/models/database.dart' as database_model;
 import 'package:sr_language_tool/services/card_cubit.dart';
 import 'package:sr_language_tool/services/database_service.dart';
 import 'package:sr_language_tool/services/review_session_cubit.dart';
+import 'package:sr_language_tool/widgets/review_difficulty_button.dart';
 import 'package:sr_language_tool/widgets/viewable_card.dart';
 
 class ReviewCardPage extends StatefulWidget {
@@ -39,8 +41,22 @@ class _ReviewCardPageState extends State<ReviewCardPage> {
         ),
         body: BlocBuilder<ReviewSessionCubit, List<database_model.Card>>(
           builder: (context, dueCards) {
-            if (dueCards.isEmpty) {
-              return Text('Loading...');
+            void onPressed(ReviewRecallDifficulty difficulty) {
+              context.read<ReviewSessionCubit>().updateCardReviewStatus(
+                    cardId: dueCards[currentCardIndex].id,
+                    lastReview: dueCards[currentCardIndex].lastReview,
+                    nextReviewDue: dueCards[currentCardIndex].nextReviewDue,
+                    difficulty: difficulty,
+                  );
+              context.read<CardCubit>().getCardList();
+              setState(() {
+                currentCardIndex++;
+                showFullCard = false;
+              });
+            }
+
+            if (dueCards.isEmpty || currentCardIndex >= dueCards.length) {
+              return Center(child: Text('No cards to review'));
             } else {
               return GestureDetector(
                 onTap: () {
@@ -62,57 +78,39 @@ class _ReviewCardPageState extends State<ReviewCardPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                MaterialButton(
-                                  onPressed: () {
-                                    context
-                                        .read<ReviewSessionCubit>()
-                                        .updateCardReviewStatus(
-                                          cardId: dueCards[currentCardIndex].id,
-                                          isCorrect: false,
-                                        );
-                                    context.read<CardCubit>().getCardList();
-                                    setState(() {
-                                      currentCardIndex++;
-                                      showFullCard = false;
-                                    });
-                                  },
-                                  child: Text(
-                                    'Incorrect',
-                                    style: TextStyle(
-                                      color: Colors.red,
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                // INCORRECT BUTTON
+                                ReviewDifficultyButton(
+                                  label: 'Incorrect',
+                                  color: Colors.red,
+                                  onPressed: () => onPressed(
+                                    ReviewRecallDifficulty.incorrect,
                                   ),
                                 ),
-                                MaterialButton(
-                                  onPressed: () {
-                                    context
-                                        .read<ReviewSessionCubit>()
-                                        .updateCardReviewStatus(
-                                          cardId: dueCards[currentCardIndex].id,
-                                          isCorrect: true,
-                                        );
-                                    context.read<CardCubit>().getCardsOfLang(
-                                          widget.selectedLanguage,
-                                        );
-                                    if (dueCards.length >
-                                        currentCardIndex + 1) {
-                                      setState(() {
-                                        currentCardIndex++;
-                                        showFullCard = false;
-                                      });
-                                    } else {
-                                      Navigator.pop(context);
-                                    }
-                                  },
-                                  child: Text(
-                                    'Correct',
-                                    style: TextStyle(
-                                      color: Colors.green,
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+
+                                // DIFFICULT BUTTON
+                                ReviewDifficultyButton(
+                                  label: 'Difficult',
+                                  color: Colors.orange,
+                                  onPressed: () => onPressed(
+                                    ReviewRecallDifficulty.difficult,
+                                  ),
+                                ),
+
+                                // REASONABLE BUTTON
+                                ReviewDifficultyButton(
+                                  label: 'Reasonable',
+                                  color: Colors.green,
+                                  onPressed: () => onPressed(
+                                    ReviewRecallDifficulty.reasonable,
+                                  ),
+                                ),
+
+                                // EASY BUTTON
+                                ReviewDifficultyButton(
+                                  label: 'Easy',
+                                  color: Colors.blue,
+                                  onPressed: () => onPressed(
+                                    ReviewRecallDifficulty.easy,
                                   ),
                                 ),
                               ],

@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/models/database.dart' as database_model;
 import 'package:sr_language_tool/services/database_service.dart';
+import 'package:sr_language_tool/constants.dart';
 
 class ReviewSessionCubit extends Cubit<List<database_model.Card>> {
   ReviewSessionCubit() : super([]) {
@@ -23,25 +24,69 @@ class ReviewSessionCubit extends Cubit<List<database_model.Card>> {
     emit(dueCards);
   }
 
-  // TODO: refactor into switch statement when more options given
-  // for difficulty of remembering card.
   Future<void> updateCardReviewStatus({
     required int cardId,
-    required bool isCorrect,
+    required DateTime lastReview,
+    required DateTime nextReviewDue,
+    required ReviewRecallDifficulty difficulty,
   }) async {
+    int timeBetweenReviews = nextReviewDue.difference(lastReview).inDays;
+    if (timeBetweenReviews == 0) timeBetweenReviews = 1;
+
     await dBService.updateLastReview(cardId, DateTime.now());
-    isCorrect
-        ? await dBService.updateNextReviewDue(
-            cardId,
-            DateTime.now().add(
-              const Duration(days: 3),
-            ),
-          )
-        : await dBService.updateNextReviewDue(
-            cardId,
-            DateTime.now().add(
-              const Duration(hours: 1),
-            ),
-          );
+
+    switch (difficulty) {
+      case ReviewRecallDifficulty.incorrect:
+        await dBService.updateNextReviewDue(
+          cardId,
+          DateTime.now().add(
+            const Duration(minutes: 5),
+          ),
+        );
+        break;
+      case ReviewRecallDifficulty.difficult:
+        await dBService.updateNextReviewDue(
+          cardId,
+          DateTime.now().add(
+            Duration(days: timeBetweenReviews),
+          ),
+        );
+        break;
+      case ReviewRecallDifficulty.reasonable:
+        await dBService.updateNextReviewDue(
+          cardId,
+          DateTime.now().add(
+            Duration(days: timeBetweenReviews * 3),
+          ),
+        );
+        break;
+      case ReviewRecallDifficulty.easy:
+        await dBService.updateNextReviewDue(
+          cardId,
+          DateTime.now().add(
+            Duration(days: timeBetweenReviews * 6),
+          ),
+        );
+        break;
+      default:
+        await dBService.updateNextReviewDue(
+          cardId,
+          DateTime.now(),
+        );
+    }
+
+    // isCorrect
+    //     ? await dBService.updateNextReviewDue(
+    //         cardId,
+    //         DateTime.now().add(
+    //           const Duration(days: 3),
+    //         ),
+    //       )
+    //     : await dBService.updateNextReviewDue(
+    //         cardId,
+    //         DateTime.now().add(
+    //           const Duration(hours: 1),
+    //         ),
+    //       );
   }
 }

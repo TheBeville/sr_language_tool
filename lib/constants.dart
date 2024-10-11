@@ -14,3 +14,10 @@ const TextStyle cardInfoStyling = TextStyle(
 );
 
 const double createCardTextFieldSpace = 10;
+
+enum ReviewRecallDifficulty {
+  incorrect,
+  difficult,
+  reasonable,
+  easy,
+}
