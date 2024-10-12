@@ -27,6 +27,12 @@ class _HomeViewState extends State<HomeView> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    context.read<ReviewSessionCubit>().getDueCards();
+  }
+
+  @override
   void dispose() {
     addLangController.dispose();
     super.dispose();
@@ -59,91 +65,139 @@ class _HomeViewState extends State<HomeView> {
                     ),
                   ),
                 ),
-                Expanded(
-                  flex: 1,
+                Flexible(
                   child: FutureBuilder<List<database_model.Language>>(
                     future: dBService.getAllLanguages(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData &&
                           snapshot.connectionState == ConnectionState.done) {
                         return ListView.builder(
+                          itemCount: snapshot.data!.length + 1,
                           itemBuilder: (context, index) {
-                            final String selectedLanguage =
-                                snapshot.data![index].language;
-                            final int selectedLangID = snapshot.data![index].id;
-                            final int numDue = cards
-                                .where((l) => l.language == selectedLangID)
-                                .toList()
-                                .length;
+                            if (index < snapshot.data!.length) {
+                              final String selectedLanguage =
+                                  snapshot.data![index].language;
+                              final int selectedLangID =
+                                  snapshot.data![index].id;
+                              final int numDue = cards
+                                  .where((l) => l.language == selectedLangID)
+                                  .toList()
+                                  .length;
 
-                            return ListTile(
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
-                              minVerticalPadding: 0,
-                              minTileHeight: 35,
-                              title: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    snapshot.data![index].language,
-                                    style: const TextStyle(fontSize: 20),
-                                  ),
-                                  Text(
-                                    '$numDue Due',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                ],
-                              ),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => LanguageOverviewPage(
-                                      selectedLanguage: selectedLanguage,
+                              return ListTile(
+                                contentPadding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
+                                minVerticalPadding: 0,
+                                minTileHeight: 35,
+                                title: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      snapshot.data![index].language,
+                                      style: const TextStyle(fontSize: 20),
                                     ),
-                                  ),
-                                );
-                              },
-                              onLongPress: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Delete language?'),
-                                    actions: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          MaterialButton(
-                                            child: const Text('Delete'),
-                                            onPressed: () async {
-                                              final int langID = await dBService
-                                                  .getLangID(selectedLanguage);
-
-                                              setState(() {
-                                                dBService.deleteLang(langID);
-                                              });
-                                              if (context.mounted) {
-                                                Navigator.of(context).pop();
-                                              }
-                                            },
-                                          ),
-                                          MaterialButton(
-                                            child: const Text('Cancel'),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                          ),
-                                        ],
+                                    Text(
+                                      '$numDue Due',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ],
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          LanguageOverviewPage(
+                                        selectedLanguage: selectedLanguage,
                                       ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
+                                    ),
+                                  );
+                                },
+                                onLongPress: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Delete language?'),
+                                      actions: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            MaterialButton(
+                                              child: const Text('Delete'),
+                                              onPressed: () async {
+                                                final int langID =
+                                                    await dBService.getLangID(
+                                                  selectedLanguage,
+                                                );
+
+                                                setState(() {
+                                                  dBService.deleteLang(langID);
+                                                });
+                                                if (context.mounted) {
+                                                  Navigator.of(context).pop();
+                                                }
+                                              },
+                                            ),
+                                            MaterialButton(
+                                              child: const Text('Cancel'),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+                            } else {
+                              return ListTile(
+                                leading: const Icon(Icons.add),
+                                title: const Text('Add Language'),
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      content: TextField(
+                                        controller: addLangController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Language Name',
+                                        ),
+                                      ),
+                                      actions: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            MaterialButton(
+                                              child: const Text('Add'),
+                                              onPressed: () {
+                                                setState(() {
+                                                  dBService.createLangCat(
+                                                    addLangController.text,
+                                                  );
+                                                });
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                            MaterialButton(
+                                              child: const Text('Cancel'),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+                            }
                           },
-                          itemCount: snapshot.data!.length,
                         );
                       } else {
                         return const Text('Loading...');
@@ -151,46 +205,7 @@ class _HomeViewState extends State<HomeView> {
                     },
                   ),
                 ),
-                ListTile(
-                  leading: const Icon(Icons.add),
-                  title: const Text('Add Language'),
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        content: TextField(
-                          controller: addLangController,
-                          decoration: const InputDecoration(
-                            labelText: 'Language Name',
-                          ),
-                        ),
-                        actions: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              MaterialButton(
-                                child: const Text('Add'),
-                                onPressed: () {
-                                  setState(() {
-                                    dBService
-                                        .createLangCat(addLangController.text);
-                                  });
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                              MaterialButton(
-                                child: const Text('Cancel'),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                // ONLY USE IF NECESSARY, WIPES ALL DATA
                 MaterialButton(
                   onPressed: dBService.clearData,
                   child: const Text('Reset/Erase DB'),
