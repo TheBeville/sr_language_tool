@@ -74,19 +74,5 @@ class ReviewSessionCubit extends Cubit<List<database_model.Card>> {
           DateTime.now(),
         );
     }
-
-    // isCorrect
-    //     ? await dBService.updateNextReviewDue(
-    //         cardId,
-    //         DateTime.now().add(
-    //           const Duration(days: 3),
-    //         ),
-    //       )
-    //     : await dBService.updateNextReviewDue(
-    //         cardId,
-    //         DateTime.now().add(
-    //           const Duration(hours: 1),
-    //         ),
-    //       );
   }
 }

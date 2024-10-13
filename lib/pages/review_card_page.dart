@@ -48,7 +48,7 @@ class _ReviewCardPageState extends State<ReviewCardPage> {
                     nextReviewDue: dueCards[currentCardIndex].nextReviewDue,
                     difficulty: difficulty,
                   );
-              context.read<CardCubit>().getCardList();
+              context.read<CardCubit>().getCardsOfLang(widget.selectedLanguage);
               setState(() {
                 currentCardIndex++;
                 showFullCard = false;

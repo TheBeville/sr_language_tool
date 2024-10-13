@@ -8,6 +8,7 @@ import 'package:sr_language_tool/pages/review_card_page.dart';
 import 'package:sr_language_tool/pages/view_card_page.dart';
 import 'package:sr_language_tool/services/card_cubit.dart';
 import 'package:sr_language_tool/services/database_service.dart';
+import 'package:sr_language_tool/services/review_session_cubit.dart';
 import 'package:sr_language_tool/widgets/lang_overview_modify_card_dialog.dart';
 
 class LanguageOverviewPage extends StatefulWidget {
@@ -27,12 +28,18 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
   void initState() {
     super.initState();
     context.read<CardCubit>().getCardsOfLang(widget.selectedLanguage);
+    context
+        .read<ReviewSessionCubit>()
+        .getDueCardsOfLang(widget.selectedLanguage);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     context.read<CardCubit>().getCardsOfLang(widget.selectedLanguage);
+    context
+        .read<ReviewSessionCubit>()
+        .getDueCardsOfLang(widget.selectedLanguage);
   }
 
   @override

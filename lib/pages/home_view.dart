@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sr_language_tool/constants.dart';
 import 'package:sr_language_tool/locator.dart';
+import 'package:sr_language_tool/main.dart';
 import 'package:sr_language_tool/models/database.dart' as database_model;
 import 'package:sr_language_tool/pages/create_card_page.dart';
 import 'package:sr_language_tool/pages/language_overview_page.dart';
@@ -15,7 +16,7 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _HomeViewState extends State<HomeView> with RouteAware {
   final dB = locator.get<database_model.AppDatabase>();
   final dBService = locator.get<DatabaseService>();
   final addLangController = TextEditingController();
@@ -29,13 +30,21 @@ class _HomeViewState extends State<HomeView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    routeObserver.subscribe(
+        this, ModalRoute.of(context)! as PageRoute<dynamic>);
     context.read<ReviewSessionCubit>().getDueCards();
   }
 
   @override
   void dispose() {
     addLangController.dispose();
+    routeObserver.unsubscribe(this);
     super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    context.read<ReviewSessionCubit>().getDueCards();
   }
 
   @override
