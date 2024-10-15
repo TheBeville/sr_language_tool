@@ -9,7 +9,6 @@ class ReviewSessionCubit extends Cubit<List<database_model.Card>> {
     getDueCards();
   }
 
-  final dB = locator.get<database_model.AppDatabase>();
   final dBService = locator.get<DatabaseService>();
 
   Future<void> getDueCards() async {

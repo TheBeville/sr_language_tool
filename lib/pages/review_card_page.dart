@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sr_language_tool/constants.dart';
-import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/models/database.dart' as database_model;
 import 'package:sr_language_tool/services/card_cubit.dart';
-import 'package:sr_language_tool/services/database_service.dart';
 import 'package:sr_language_tool/services/review_session_cubit.dart';
 import 'package:sr_language_tool/widgets/review_difficulty_button.dart';
 import 'package:sr_language_tool/widgets/viewable_card.dart';
@@ -18,9 +16,6 @@ class ReviewCardPage extends StatefulWidget {
 }
 
 class _ReviewCardPageState extends State<ReviewCardPage> {
-  final dB = locator.get<database_model.AppDatabase>();
-  final dBService = locator.get<DatabaseService>();
-
   int currentCardIndex = 0;
   bool showFullCard = false;
 

@@ -8,7 +8,6 @@ class CardCubit extends Cubit<List<database_model.Card>> {
     getCardList();
   }
 
-  final dB = locator.get<database_model.AppDatabase>();
   final dBService = locator.get<DatabaseService>();
 
   Future<void> getCardList() async {

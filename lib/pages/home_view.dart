@@ -17,7 +17,6 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> with RouteAware {
-  final dB = locator.get<database_model.AppDatabase>();
   final dBService = locator.get<DatabaseService>();
   final addLangController = TextEditingController();
 

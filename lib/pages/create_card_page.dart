@@ -23,7 +23,6 @@ class CreateCardPage extends StatefulWidget {
 }
 
 class _CreateCardPageState extends State<CreateCardPage> {
-  final dB = locator.get<database_model.AppDatabase>();
   final dBService = locator.get<DatabaseService>();
 
   final TextEditingController languageController = TextEditingController();
