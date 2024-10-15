@@ -58,7 +58,7 @@ class _ViewableCardState extends State<ViewableCard> {
                   },
                 ),
                 const SizedBox(width: 2),
-                widget.card.gender == null
+                widget.card.gender == ''
                     ? const SizedBox()
                     : Text(
                         '[${widget.card.gender}]',
@@ -74,14 +74,36 @@ class _ViewableCardState extends State<ViewableCard> {
             style: const TextStyle(fontSize: 30),
           ),
           widget.card.pluralForm == null
-              ? const SizedBox(height: 30)
+              ? const SizedBox()
               : Column(
                   children: [
                     Text(
                       '(plural: ${widget.card.pluralForm})',
                       style: cardInfoStyling,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 5),
+                  ],
+                ),
+          widget.card.pronunciation == null
+              ? const SizedBox()
+              : Column(
+                  children: [
+                    Text(
+                      'Pronunciation: ${widget.card.pronunciation}',
+                      style: cardInfoStyling,
+                    ),
+                    const SizedBox(height: 5),
+                  ],
+                ),
+          widget.card.exampleUsage == null
+              ? const SizedBox()
+              : Column(
+                  children: [
+                    Text(
+                      'Example: ${widget.card.exampleUsage}',
+                      style: cardInfoStyling,
+                    ),
+                    const SizedBox(height: 5),
                   ],
                 ),
         ],

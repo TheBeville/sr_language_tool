@@ -315,6 +315,11 @@ class _CreateCardPageState extends State<CreateCardPage> {
                                   nextReviewDue: widget.card!.nextReviewDue,
                                 );
 
+                        clearControllers();
+                        setState(() {
+                          isNoun = false;
+                        });
+
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -332,19 +337,11 @@ class _CreateCardPageState extends State<CreateCardPage> {
                               ),
                             ),
                           );
-                          if (widget.appBarTitle == 'Edit Card') {
-                            setState(() {
-                              appBarTitle = 'Create Card';
-                            });
-                          }
+                          if (widget.card != null) Navigator.pop(context);
                         }
-                        clearControllers();
-                        setState(() {
-                          isNoun = false;
-                        });
                       },
                       child: Text(
-                        'Create',
+                        widget.card == null ? 'Create' : 'Modify',
                         style: TextStyle(
                           fontSize: 18,
                           color: Theme.of(context).primaryColor,
