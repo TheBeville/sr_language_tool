@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sr_language_tool/constants.dart';
@@ -82,7 +83,7 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
         ),
         body: BlocBuilder<CardCubit, List<database_model.Card>>(
           builder: (context, cards) {
-            cards.sort(
+            final sortedCards = cards.sorted(
               (a, b) => a.frontContent
                   .toLowerCase()
                   .compareTo(b.frontContent.toLowerCase()),
@@ -91,9 +92,9 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 22),
               child: ListView.builder(
-                itemCount: cards.length,
+                itemCount: sortedCards.length,
                 itemBuilder: (context, index) {
-                  final card = cards[index];
+                  final card = sortedCards[index];
                   final bool isDue =
                       card.nextReviewDue.isBefore(DateTime.now()) ||
                           card.nextReviewDue.isAtSameMomentAs(DateTime.now());

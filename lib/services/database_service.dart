@@ -13,8 +13,11 @@ class DatabaseService {
 
   void initialiseDB() async {
     final List<Card> cardlist = await getAllCards();
+    if (cardlist.isEmpty) {
+      isEmptyFunctions();
+    }
 
-    cardlist.isEmpty ? isEmptyFunctions() : print('database loaded');
+    // cardlist.isEmpty ? isEmptyFunctions() : print('database loaded');
   }
 
   void isEmptyFunctions() {
@@ -268,7 +271,7 @@ class DatabaseService {
 
       if (await dbFile.exists()) {
         await dbFile.delete();
-        print('Database file deleted');
+        // print('Database file deleted');
       } else {
         print('Database file not found');
       }

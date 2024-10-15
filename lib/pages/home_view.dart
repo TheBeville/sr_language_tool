@@ -31,7 +31,14 @@ class _HomeViewState extends State<HomeView> with RouteAware {
   void didChangeDependencies() {
     super.didChangeDependencies();
     routeObserver.subscribe(
-        this, ModalRoute.of(context)! as PageRoute<dynamic>);
+      this,
+      ModalRoute.of(context)! as PageRoute<dynamic>,
+    );
+    context.read<ReviewSessionCubit>().getDueCards();
+  }
+
+  @override
+  void didPopNext() {
     context.read<ReviewSessionCubit>().getDueCards();
   }
 
@@ -40,11 +47,6 @@ class _HomeViewState extends State<HomeView> with RouteAware {
     addLangController.dispose();
     routeObserver.unsubscribe(this);
     super.dispose();
-  }
-
-  @override
-  void didPopNext() {
-    context.read<ReviewSessionCubit>().getDueCards();
   }
 
   @override
