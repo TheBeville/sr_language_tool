@@ -26,6 +26,7 @@ class ViewCardPage extends StatelessWidget {
             cardLanguage.toUpperCase(),
             style: appBarTitleStyling,
           ),
+          centerTitle: true,
         ),
         body: ViewableCard(card: card),
       ),

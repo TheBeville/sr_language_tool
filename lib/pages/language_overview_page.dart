@@ -47,6 +47,7 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
             widget.selectedLanguage.toUpperCase(),
             style: appBarTitleStyling,
           ),
+          centerTitle: true,
           actions: [
             Padding(
               padding: const EdgeInsets.only(top: 10),

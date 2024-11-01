@@ -92,7 +92,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
 
   @override
   Widget build(BuildContext context) {
-    String appBarTitle = widget.appBarTitle;
+    final String appBarTitle = widget.appBarTitle;
 
     return SafeArea(
       child: Scaffold(
@@ -101,6 +101,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
             appBarTitle,
             style: appBarTitleStyling,
           ),
+          centerTitle: true,
         ),
         body: BlocBuilder<CardCubit, List<database_model.Card>>(
           builder: (context, cards) {

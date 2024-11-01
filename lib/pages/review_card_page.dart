@@ -33,6 +33,7 @@ class _ReviewCardPageState extends State<ReviewCardPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text('Reviewing: ${widget.selectedLanguage}'),
+          centerTitle: true,
         ),
         body: BlocBuilder<ReviewSessionCubit, List<database_model.Card>>(
           builder: (context, dueCards) {

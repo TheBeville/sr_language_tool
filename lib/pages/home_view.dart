@@ -57,6 +57,7 @@ class _HomeViewState extends State<HomeView> with RouteAware {
             'SR TOOL',
             style: appBarTitleStyling,
           ),
+          centerTitle: true,
         ),
         body: BlocBuilder<ReviewSessionCubit, List<database_model.Card>>(
           builder: (context, cards) {
