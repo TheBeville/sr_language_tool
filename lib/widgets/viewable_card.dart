@@ -58,7 +58,7 @@ class _ViewableCardState extends State<ViewableCard> {
                   },
                 ),
                 const SizedBox(width: 2),
-                widget.card.gender == ''
+                widget.card.gender == null
                     ? const SizedBox()
                     : Text(
                         '[${widget.card.gender}]',

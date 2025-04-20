@@ -1,0 +1,2 @@
+/Users/stevebeville/Desktop/Development/sr_language_tool/android/app/.cxx/Debug/ne694j1h/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/stevebeville/Desktop/Development/sr_language_tool/android/app/.cxx/Debug/ne694j1h/armeabi-v7a/CMakeFiles/rebuild_cache.dir
