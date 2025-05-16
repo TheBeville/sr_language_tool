@@ -94,6 +94,9 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
                   final bool isDue =
                       card.nextReviewDue.isBefore(DateTime.now()) ||
                           card.nextReviewDue.isAtSameMomentAs(DateTime.now());
+                  final String cardName = card.frontContent.length > 20
+                      ? '${card.frontContent.substring(0, 20)}...'
+                      : card.frontContent;
 
                   return Column(
                     children: [
@@ -102,7 +105,7 @@ class _LanguageOverviewPageState extends State<LanguageOverviewPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              card.frontContent,
+                              cardName,
                               style: const TextStyle(fontSize: 18),
                             ),
                             Text(
