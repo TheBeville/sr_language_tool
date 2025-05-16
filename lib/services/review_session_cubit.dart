@@ -67,11 +67,6 @@ class ReviewSessionCubit extends Cubit<List<database_model.Card>> {
           ),
         );
         break;
-      default:
-        await dBService.updateNextReviewDue(
-          cardId,
-          DateTime.now(),
-        );
     }
   }
 }
