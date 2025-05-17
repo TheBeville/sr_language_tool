@@ -17,6 +17,22 @@ class ModifyCardDialog extends StatefulWidget {
 
 class _ModifyCardDialogState extends State<ModifyCardDialog> {
   final dBService = locator.get<DatabaseService>();
+  String? language;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLanguage();
+  }
+
+  Future<void> _loadLanguage() async {
+    final lang = await dBService.getLangByID(widget.card.language);
+    if (mounted) {
+      setState(() {
+        language = lang;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,49 +41,48 @@ class _ModifyCardDialogState extends State<ModifyCardDialog> {
         return AlertDialog(
           title: const Text('Modify card?'),
           actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                MaterialButton(
-                  child: const Text('Edit'),
-                  onPressed: () async {
-                    final language =
-                        await dBService.getLangByID(widget.card.language);
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CreateCardPage(
-                            appBarTitle: 'Edit Card',
-                            card: widget.card,
-                            defaultLanguage: language,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  MaterialButton(
+                    onPressed: () async {
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CreateCardPage(
+                              appBarTitle: 'Edit Card',
+                              card: widget.card,
+                              defaultLanguage: language!,
+                            ),
                           ),
-                        ),
-                      );
-                    }
-                  },
-                ),
-                MaterialButton(
-                  child: const Text('Delete'),
-                  onPressed: () async {
-                    final language =
-                        await dBService.getLangByID(widget.card.language);
-                    if (context.mounted) {
-                      await context
-                          .read<CardCubit>()
-                          .deleteCard(widget.card.id, language);
-                      if (context.mounted) Navigator.of(context).pop();
-                    }
-                  },
-                ),
-                MaterialButton(
-                  child: const Text('Cancel'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
+                        );
+                      }
+                    },
+                    child: const Text('Edit'),
+                  ),
+                  MaterialButton(
+                    onPressed: () async {
+                      if (context.mounted) {
+                        await context
+                            .read<CardCubit>()
+                            .deleteCard(widget.card.id, language!);
+                        if (context.mounted) Navigator.of(context).pop();
+                      }
+                    },
+                    child: const Text('Delete'),
+                  ),
+                  MaterialButton(
+                    child: const Text('Cancel'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         );
