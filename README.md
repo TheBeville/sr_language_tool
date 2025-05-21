@@ -1,16 +1,9 @@
-# sr_language_tool
+# SR Tool
 
-A new Flutter project.
+Inspired by spaced repetition tools, such as the ANKI system (the ANKIdroid app, in particular), 
+I wanted to make an app that was tailored a bit more to myself. Gone are things like the 'leech'
+tag and automatic suspending of cards if incorrectly identified a handful of times - something
+I could never disable in ANKIdroid, if it's even possible, which made memorising tricky kanji
+very frustrating.
 
 ## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
