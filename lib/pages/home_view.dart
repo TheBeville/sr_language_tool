@@ -217,10 +217,10 @@ class _HomeViewState extends State<HomeView> with RouteAware {
                   ),
                 ),
                 // ONLY USE IF NECESSARY, WIPES ALL DATA
-                MaterialButton(
-                  onPressed: dBService.clearData,
-                  child: const Text('Reset/Erase DB'),
-                ),
+                // MaterialButton(
+                //   onPressed: dBService.clearData,
+                //   child: const Text('Reset/Erase DB'),
+                // ),
                 const Spacer(flex: 1),
               ],
             );
