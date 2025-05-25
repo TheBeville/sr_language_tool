@@ -7,7 +7,7 @@ I could never disable in AnkiDroid, if it's even possible, which made memorising
 very frustrating.
 
 <br>
-<img width="379" alt="sr-tool-home-view" src="https://github.com/user-attachments/assets/76a14a29-752a-4860-a975-e349540c0d1d" />
+<img width="300" alt="sr-tool-home-view" src="https://github.com/user-attachments/assets/76a14a29-752a-4860-a975-e349540c0d1d" />
 <br><br><br><br><br>
 
 ## Getting Started
@@ -17,14 +17,14 @@ The card creation page comes with different word categories (noun, adjective, ve
 values, such as the gender of a word, its plural form, or even pronunciation guides and example usage.
 
 <br>
-<img width="379" alt="sr-tool-create-card-view" src="https://github.com/user-attachments/assets/04e74bbd-accf-46f9-b404-d24cfcc908c2" />
+<img width="300" alt="sr-tool-create-card-view" src="https://github.com/user-attachments/assets/04e74bbd-accf-46f9-b404-d24cfcc908c2" />
 <br><br><br><br>
 
 Once you've added a few cards, you can view a list of them all on the language's overview page and
 see see when each card is due for review (determined by the ANKI-inspired spaced repetition system).
 
 <br>
-<img width="379" alt="sr-tool-lang-overview" src="https://github.com/user-attachments/assets/b99aef78-22cb-4a38-aa2c-e24bf2bdf8d6" />
+<img width="300" alt="sr-tool-lang-overview" src="https://github.com/user-attachments/assets/b99aef78-22cb-4a38-aa2c-e24bf2bdf8d6" />
 <br><br><br><br>
 
 When you wish to review, hit the 'Review' button at the top of the language's overview page to 
@@ -35,4 +35,4 @@ were able to successfully remember the word and/or how easy it was to do so. The
 when the card will next be marked for review again.
 
 <br>
-<img width="379" alt="sr-tool-card-review" src="https://github.com/user-attachments/assets/a461e5d9-e2f7-4f6e-8492-22f3c100b060" />
+<img width="300" alt="sr-tool-card-review" src="https://github.com/user-attachments/assets/a461e5d9-e2f7-4f6e-8492-22f3c100b060" />
