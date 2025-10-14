@@ -191,12 +191,14 @@ class _HomeViewState extends State<HomeView> with RouteAware {
                                                     addLangController.text,
                                                   );
                                                 });
+                                                addLangController.clear();
                                                 Navigator.of(context).pop();
                                               },
                                             ),
                                             MaterialButton(
                                               child: const Text('Cancel'),
                                               onPressed: () {
+                                                addLangController.clear();
                                                 Navigator.of(context).pop();
                                               },
                                             ),

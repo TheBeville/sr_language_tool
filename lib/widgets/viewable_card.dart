@@ -99,9 +99,12 @@ class _ViewableCardState extends State<ViewableCard> {
               ? const SizedBox()
               : Column(
                   children: [
-                    Text(
-                      'Example: ${widget.card.exampleUsage}',
-                      style: cardInfoStyling,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                      child: Text(
+                        'E.g. ${widget.card.exampleUsage}',
+                        style: cardInfoStyling,
+                      ),
                     ),
                     const SizedBox(height: 5),
                   ],
