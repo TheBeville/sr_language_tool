@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/pages/home_view.dart';
 import 'package:sr_language_tool/services/card_cubit.dart';
@@ -13,6 +14,10 @@ final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    anonKey: dotenv.env['API_KEY'] ?? '',
+  );
   setupLocator();
   DatabaseService().initialiseDB();
   runApp(const MyApp());

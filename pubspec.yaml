@@ -43,6 +43,7 @@ dependencies:
   collection: ^1.18.0
   flutter_launcher_icons: ^0.14.4
   flutter_dotenv: ^6.0.0
+  supabase_flutter: ^2.10.3
 
 dev_dependencies:
   flutter_test:
