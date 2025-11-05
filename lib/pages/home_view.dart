@@ -6,6 +6,7 @@ import 'package:sr_language_tool/main.dart';
 import 'package:sr_language_tool/models/database.dart' as database_model;
 import 'package:sr_language_tool/pages/create_card_page.dart';
 import 'package:sr_language_tool/pages/language_overview_page.dart';
+import 'package:sr_language_tool/pages/settings_page.dart';
 import 'package:sr_language_tool/services/database_service.dart';
 import 'package:sr_language_tool/services/review_session_cubit.dart';
 
@@ -58,6 +59,23 @@ class _HomeViewState extends State<HomeView> with RouteAware {
             style: appBarTitleStyling,
           ),
           centerTitle: true,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 5.0),
+              child: IconButton(
+                icon: const Icon(Icons.settings),
+                iconSize: 32.0,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SettingsPage(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
         body: BlocBuilder<ReviewSessionCubit, List<database_model.Card>>(
           builder: (context, cards) {

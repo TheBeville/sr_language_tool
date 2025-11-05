@@ -273,10 +273,10 @@ class DatabaseService {
         await dbFile.delete();
         // print('Database file deleted');
       } else {
-        print('Database file not found');
+        throw Exception('Database file not found');
       }
     } catch (e) {
-      print('Error deleting database: $e');
+      throw Exception('Error deleting database: $e');
     }
   }
 }
