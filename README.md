@@ -39,4 +39,6 @@ when the card will next be marked for review again.
 <br><br><br><br>
 
 ## Coming soon
-Cloud storage and sync, to allow for use across multiple devices with one account!
+Cloud storage and sync, to allow for use across multiple devices with one account! Local storage will still
+be the default storage method, but this will allow for migrating data to other devices, as well as sharing 
+saved cards across devices.
