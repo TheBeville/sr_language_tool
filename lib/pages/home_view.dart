@@ -249,41 +249,7 @@ class _HomeViewState extends State<HomeView> with RouteAware {
                 //   onPressed: dBService.clearData,
                 //   child: const Text('Reset/Erase DB'),
                 // ),
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                      color: Colors.blue.shade400,
-                      width: 2,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 10,
-                    ),
-                    fixedSize: Size(175, 45),
-                  ),
-                  onPressed: () {},
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.cloud_upload,
-                        color: Colors.blue.shade400,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Cloud Sync',
-                        style: TextStyle(
-                            color: Colors.blue.shade400,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
+
                 const Spacer(flex: 1),
               ],
             );
