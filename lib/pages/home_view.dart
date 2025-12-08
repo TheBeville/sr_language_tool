@@ -59,6 +59,14 @@ class _HomeViewState extends State<HomeView> with RouteAware {
             style: appBarTitleStyling,
           ),
           centerTitle: true,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 5.0),
+            child: IconButton(
+              icon: const Icon(Icons.cloud_upload),
+              iconSize: 32.0,
+              onPressed: () {},
+            ),
+          ),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 5.0),
@@ -241,50 +249,19 @@ class _HomeViewState extends State<HomeView> with RouteAware {
                 //   onPressed: dBService.clearData,
                 //   child: const Text('Reset/Erase DB'),
                 // ),
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                      color: Colors.blue.shade400,
-                      width: 2,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 10,
-                    ),
-                    fixedSize: Size(175, 45),
-                  ),
-                  onPressed: () {},
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.cloud_upload,
-                        color: Colors.blue.shade400,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Cloud Sync',
-                        style: TextStyle(
-                            color: Colors.blue.shade400,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
+
                 const Spacer(flex: 1),
               ],
             );
           },
         ),
         floatingActionButton: FloatingActionButton(
-          child: Icon(
-            Icons.add,
-            color: Theme.of(context).primaryColorLight,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(
+              color: Colors.white,
+              width: 1,
+            ),
           ),
           onPressed: () {
             Navigator.push(
@@ -295,6 +272,10 @@ class _HomeViewState extends State<HomeView> with RouteAware {
               ),
             );
           },
+          child: Icon(
+            Icons.add,
+            color: Colors.white,
+          ),
         ),
       ),
     );
