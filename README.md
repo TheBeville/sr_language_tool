@@ -36,3 +36,9 @@ when the card will next be marked for review again.
 
 <br>
 <img width="300" alt="sr-tool-card-review" src="https://github.com/user-attachments/assets/a461e5d9-e2f7-4f6e-8492-22f3c100b060" />
+<br><br><br><br>
+
+## Coming soon
+Cloud storage and sync, to allow for use across multiple devices with one account! Local storage will still
+be the default storage method, but this will allow for migrating data to other devices, as well as sharing 
+saved cards across devices.
