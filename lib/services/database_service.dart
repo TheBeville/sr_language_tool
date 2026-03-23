@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
 class DatabaseService {
-  final dB = locator.get<AppDatabase>();
+  final AppDatabase dB = locator.get<AppDatabase>();
 
   // @@@@@@@@@@@@@@@@@@@@@@@@@@ \\
   // @| INITIALISATION STUFF |@ \\
@@ -57,7 +57,7 @@ class DatabaseService {
     return await dB.select(dB.cards).get();
   }
 
-  Future<List<Card>> getCardsOfLang(language) async {
+  Future<List<Card>> getCardsOfLang(String language) async {
     final int langID = await getLangID(language);
 
     return await (dB.select(dB.cards)..where((c) => c.language.equals(langID)))
@@ -98,8 +98,8 @@ class DatabaseService {
   }
 
   Future<void> createCard({
-    required language,
-    required category,
+    required String language,
+    required String category,
     required String frontContent,
     required String revealContent,
     required DateTime lastReview,
@@ -111,10 +111,6 @@ class DatabaseService {
   }) async {
     final int langID = await getLangID(language);
     final int catID = await getCatID(category);
-
-    category = dB.select(dB.categories)
-      ..where((c) => c.category.equals(category));
-    category.map((column) => column.id).get();
     await dB.into(dB.cards).insert(
           CardsCompanion.insert(
             language: langID,
@@ -131,14 +127,14 @@ class DatabaseService {
         );
   }
 
-  Future deleteCard(int id) {
+  Future<int> deleteCard(int id) {
     return (dB.delete(dB.cards)..where((card) => card.id.equals(id))).go();
   }
 
   Future<void> updateCard({
     required int id,
-    required language,
-    required category,
+    required String language,
+    required String category,
     required String frontContent,
     required String revealContent,
     required DateTime lastReview,
@@ -209,13 +205,13 @@ class DatabaseService {
     return language?.language ?? 'Example Language';
   }
 
-  void createLangCat(language) async {
+  Future<void> createLangCat(String language) async {
     await dB.into(dB.languages).insert(
           LanguagesCompanion.insert(language: language),
         );
   }
 
-  Future deleteLang(int id) {
+  Future<int> deleteLang(int id) {
     return (dB.delete(dB.languages)
           ..where((language) => language.id.equals(id)))
         .go();
@@ -246,13 +242,13 @@ class DatabaseService {
     return cat?.id ?? 1;
   }
 
-  void createCategory(category) async {
+  Future<void> createCategory(String category) async {
     await dB.into(dB.categories).insert(
           CategoriesCompanion.insert(category: category),
         );
   }
 
-  Future deleteCategory(int id) {
+  Future<int> deleteCategory(int id) {
     return (dB.delete(dB.categories)
           ..where((category) => category.id.equals(id)))
         .go();
