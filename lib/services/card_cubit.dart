@@ -34,7 +34,8 @@ class CardCubit extends Cubit<List<database_model.Card>> {
     String? pronunciation,
     String? exampleUsage,
   }) async {
-    final bool cardMatch = await dBService.checkCardMatch(frontContent);
+    final bool cardMatch =
+        await dBService.checkCardMatch(frontContent, language);
 
     !cardMatch
         ? await dBService.createCard(

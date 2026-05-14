@@ -88,10 +88,14 @@ class DatabaseService {
         .get();
   }
 
-  Future<bool> checkCardMatch(String frontContent) async {
+  Future<bool> checkCardMatch(String frontContent, String language) async {
+    final int langID = await getLangID(language);
+
     final Card? cardMatch = await (dB.select(dB.cards)
           ..where(
-            (tbl) => tbl.frontContent.equals(frontContent),
+            (tbl) =>
+                tbl.frontContent.equals(frontContent) &
+                tbl.language.equals(langID),
           ))
         .getSingleOrNull();
     return cardMatch != null;
