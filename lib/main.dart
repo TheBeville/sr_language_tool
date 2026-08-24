@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/pages/home_view.dart';
+import 'package:sr_language_tool/services/auth_cubit.dart';
 import 'package:sr_language_tool/services/card_cubit.dart';
 import 'package:sr_language_tool/services/review_session_cubit.dart';
 import 'package:sr_language_tool/theme.dart';
@@ -30,6 +31,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider<AuthCubit>(
+          create: (context) => AuthCubit(),
+        ),
         BlocProvider<CardCubit>(
           create: (context) => CardCubit(),
         ),
