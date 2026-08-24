@@ -18,6 +18,7 @@ void main() {
         .thenAnswer((_) async => <database_model.Card>[]);
     when(() => mock.checkCardMatch(any(), any()))
         .thenAnswer((_) async => false);
+
     when(
       () => mock.createCard(
         language: any(named: 'language'),
@@ -71,6 +72,7 @@ void main() {
     when(() => mock.getAllCards())
         .thenAnswer((_) async => <database_model.Card>[]);
     when(() => mock.checkCardMatch(any(), any())).thenAnswer((_) async => true);
+
     when(() => mock.getCardsOfLang(any()))
         .thenAnswer((_) async => <database_model.Card>[]);
 
