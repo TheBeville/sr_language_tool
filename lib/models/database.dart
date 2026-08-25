@@ -27,12 +27,27 @@ class Categories extends Table {
   TextColumn get category => text()();
 }
 
-@DriftDatabase(tables: [Cards, Languages, Categories])
+class Genders extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get language => integer().references(Languages, #id)();
+  TextColumn get gender => text()();
+}
+
+@DriftDatabase(tables: [Cards, Languages, Categories, Genders])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.createTable(genders);
+          }
+        },
+      );
 
   static QueryExecutor _openConnection() => driftDatabase(name: 'app_database');
 }

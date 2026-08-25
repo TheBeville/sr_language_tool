@@ -35,6 +35,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
   final TextEditingController exampleUsageController = TextEditingController();
 
   bool isNoun = false;
+  String _selectedLanguage = '';
 
   @override
   void initState() {
@@ -44,6 +45,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
     if (widget.card != null) {
       final card = widget.card!;
       languageController.text = widget.defaultLanguage ?? '';
+      _selectedLanguage = widget.defaultLanguage ?? '';
       dBService.getCatByID(card.category).then((category) {
         categoryController.text = category ?? '';
       });
@@ -64,6 +66,7 @@ class _CreateCardPageState extends State<CreateCardPage> {
       });
     } else if (widget.defaultLanguage != null) {
       languageController.text = widget.defaultLanguage!;
+      _selectedLanguage = widget.defaultLanguage!;
     }
   }
 
@@ -132,6 +135,12 @@ class _CreateCardPageState extends State<CreateCardPage> {
                               backgroundColor:
                                   WidgetStatePropertyAll(Colors.grey.shade800),
                             ),
+                            onSelected: (value) {
+                              setState(
+                                () => _selectedLanguage =
+                                    (value as String?) ?? '',
+                              );
+                            },
                             dropdownMenuEntries: languages!.map((l) {
                               return DropdownMenuEntry(
                                 value: l.language,
@@ -190,25 +199,25 @@ class _CreateCardPageState extends State<CreateCardPage> {
                         ? Column(
                             children: [
                               const SizedBox(height: 20),
-                              DropdownMenu(
-                                controller: genderController,
-                                width: 342,
-                                label: const Text('Gender'),
-                                initialSelection: widget.card?.gender ?? 1,
-                                dropdownMenuEntries: const [
-                                  DropdownMenuEntry(
-                                    value: 'Masc.',
-                                    label: 'Masc.',
-                                  ),
-                                  DropdownMenuEntry(
-                                    value: 'Fem.',
-                                    label: 'Fem.',
-                                  ),
-                                  DropdownMenuEntry(
-                                    value: 'Neut.',
-                                    label: 'Neut.',
-                                  ),
-                                ],
+                              FutureBuilder<List<database_model.Gender>>(
+                                future: dBService.getGendersOfLang(
+                                  _selectedLanguage,
+                                ),
+                                builder: (context, snapshot) {
+                                  final genders = snapshot.data ?? [];
+                                  return DropdownMenu(
+                                    controller: genderController,
+                                    width: 342,
+                                    label: const Text('Gender'),
+                                    initialSelection: widget.card?.gender,
+                                    dropdownMenuEntries: genders.map((g) {
+                                      return DropdownMenuEntry(
+                                        value: g.gender,
+                                        label: g.gender,
+                                      );
+                                    }).toList(),
+                                  );
+                                },
                               ),
                             ],
                           )

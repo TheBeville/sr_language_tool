@@ -215,6 +215,12 @@ class DatabaseService {
         );
   }
 
+  Future<void> updateLangName(int id, String newName) async {
+    await (dB.update(dB.languages)..where((l) => l.id.equals(id))).write(
+      LanguagesCompanion(language: Value(newName)),
+    );
+  }
+
   Future<int> deleteLang(int id) {
     return (dB.delete(dB.languages)
           ..where((language) => language.id.equals(id)))
@@ -256,6 +262,37 @@ class DatabaseService {
     return (dB.delete(dB.categories)
           ..where((category) => category.id.equals(id)))
         .go();
+  }
+
+  // @@@@@@@@@@@@@@@@@@@@@@@@@ \\
+  // @|     GENDER STUFF     |@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@@@ \\
+
+  Future<void> replaceGendersForLang(int langId, List<String> genders) async {
+    await (dB.delete(dB.genders)..where((g) => g.language.equals(langId))).go();
+    for (final gender in genders) {
+      await dB.into(dB.genders).insert(
+            GendersCompanion.insert(language: langId, gender: gender),
+          );
+    }
+  }
+
+  Future<List<Gender>> getGendersOfLang(String language) async {
+    final int langID = await getLangID(language);
+    return await (dB.select(dB.genders)
+          ..where((g) => g.language.equals(langID)))
+        .get();
+  }
+
+  Future<void> createGender(String language, String gender) async {
+    final int langID = await getLangID(language);
+    await dB.into(dB.genders).insert(
+          GendersCompanion.insert(language: langID, gender: gender),
+        );
+  }
+
+  Future<int> deleteGender(int id) {
+    return (dB.delete(dB.genders)..where((g) => g.id.equals(id))).go();
   }
 
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ \\
