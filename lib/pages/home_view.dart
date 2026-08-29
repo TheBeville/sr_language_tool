@@ -7,6 +7,8 @@ import 'package:sr_language_tool/models/database.dart' as database_model;
 import 'package:sr_language_tool/pages/create_card_page.dart';
 import 'package:sr_language_tool/pages/language_overview_page.dart';
 import 'package:sr_language_tool/pages/settings_page.dart';
+import 'package:sr_language_tool/widgets/add_edit_language_dialog.dart';
+import 'package:sr_language_tool/services/auth_cubit.dart';
 import 'package:sr_language_tool/services/database_service.dart';
 import 'package:sr_language_tool/services/review_session_cubit.dart';
 
@@ -19,7 +21,6 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> with RouteAware {
   final dBService = locator.get<DatabaseService>();
-  final addLangController = TextEditingController();
 
   @override
   void initState() {
@@ -44,7 +45,6 @@ class _HomeViewState extends State<HomeView> with RouteAware {
 
   @override
   void dispose() {
-    addLangController.dispose();
     routeObserver.unsubscribe(this);
     super.dispose();
   }
@@ -59,13 +59,18 @@ class _HomeViewState extends State<HomeView> with RouteAware {
             style: appBarTitleStyling,
           ),
           centerTitle: true,
-          leading: Padding(
-            padding: const EdgeInsets.only(left: 5.0),
-            child: IconButton(
-              icon: const Icon(Icons.cloud_upload),
-              iconSize: 32.0,
-              onPressed: () {},
-            ),
+          leading: BlocBuilder<AuthCubit, AuthState>(
+            builder: (context, state) {
+              if (state is! AuthAuthenticated) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(left: 5.0),
+                child: IconButton(
+                  icon: const Icon(Icons.cloud_upload),
+                  iconSize: 32.0,
+                  onPressed: () {},
+                ),
+              );
+            },
           ),
           actions: [
             Padding(
@@ -155,35 +160,56 @@ class _HomeViewState extends State<HomeView> with RouteAware {
                                   showDialog(
                                     context: context,
                                     builder: (context) => AlertDialog(
-                                      title: const Text('Delete language?'),
+                                      title: Text(
+                                        selectedLanguage,
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
                                       actions: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            MaterialButton(
-                                              child: const Text('Delete'),
-                                              onPressed: () async {
-                                                final int langID =
-                                                    await dBService.getLangID(
-                                                  selectedLanguage,
-                                                );
-
-                                                setState(() {
-                                                  dBService.deleteLang(langID);
-                                                });
-                                                if (context.mounted) {
+                                        FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              MaterialButton(
+                                                child: const Text('Edit'),
+                                                onPressed: () async {
                                                   Navigator.of(context).pop();
-                                                }
-                                              },
-                                            ),
-                                            MaterialButton(
-                                              child: const Text('Cancel'),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ],
+                                                  final result =
+                                                      await showDialog<bool>(
+                                                    context: context,
+                                                    builder: (context) =>
+                                                        AddEditLanguageDialog(
+                                                      language:
+                                                          snapshot.data![index],
+                                                    ),
+                                                  );
+                                                  if (result == true) {
+                                                    setState(() {});
+                                                  }
+                                                },
+                                              ),
+                                              MaterialButton(
+                                                child: const Text('Delete'),
+                                                onPressed: () async {
+                                                  setState(() {
+                                                    dBService.deleteLang(
+                                                      selectedLangID,
+                                                    );
+                                                  });
+                                                  if (context.mounted) {
+                                                    Navigator.of(context).pop();
+                                                  }
+                                                },
+                                              ),
+                                              MaterialButton(
+                                                child: const Text('Cancel'),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -194,45 +220,13 @@ class _HomeViewState extends State<HomeView> with RouteAware {
                               return ListTile(
                                 leading: const Icon(Icons.add),
                                 title: const Text('Add Language'),
-                                onTap: () {
-                                  showDialog(
+                                onTap: () async {
+                                  final result = await showDialog<bool>(
                                     context: context,
-                                    builder: (context) => AlertDialog(
-                                      content: TextField(
-                                        controller: addLangController,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Language Name',
-                                        ),
-                                      ),
-                                      actions: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            MaterialButton(
-                                              child: const Text('Add'),
-                                              onPressed: () {
-                                                setState(() {
-                                                  dBService.createLangCat(
-                                                    addLangController.text,
-                                                  );
-                                                });
-                                                addLangController.clear();
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                            MaterialButton(
-                                              child: const Text('Cancel'),
-                                              onPressed: () {
-                                                addLangController.clear();
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
+                                    builder: (context) =>
+                                        const AddEditLanguageDialog(),
                                   );
+                                  if (result == true) setState(() {});
                                 },
                               );
                             }

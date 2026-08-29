@@ -2,10 +2,12 @@ import 'package:drift/drift.dart';
 import 'package:sr_language_tool/locator.dart';
 import 'package:sr_language_tool/models/database.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 import 'dart:io';
 
 class DatabaseService {
   final AppDatabase dB = locator.get<AppDatabase>();
+  static const _uuid = Uuid();
 
   // @@@@@@@@@@@@@@@@@@@@@@@@@@ \\
   // @| INITIALISATION STUFF |@ \\
@@ -127,6 +129,8 @@ class DatabaseService {
             exampleUsage: Value(exampleUsage),
             lastReview: lastReview,
             nextReviewDue: nextReviewDue,
+            syncId: Value(_uuid.v4()),
+            lastModified: Value(DateTime.now()),
           ),
         );
   }
@@ -151,27 +155,28 @@ class DatabaseService {
     final int langID = await getLangID(language);
     final int catID = await getCatID(category);
 
-    await dB.update(dB.cards).replace(
-          CardsCompanion(
-            id: Value(id),
-            language: Value(langID),
-            category: Value(catID),
-            frontContent: Value(frontContent),
-            revealContent: Value(revealContent),
-            gender: Value(gender),
-            pluralForm: Value(pluralForm),
-            pronunciation: Value(pronunciation),
-            exampleUsage: Value(exampleUsage),
-            lastReview: Value(lastReview),
-            nextReviewDue: Value(nextReviewDue),
-          ),
-        );
+    await (dB.update(dB.cards)..where((tbl) => tbl.id.equals(id))).write(
+      CardsCompanion(
+        language: Value(langID),
+        category: Value(catID),
+        frontContent: Value(frontContent),
+        revealContent: Value(revealContent),
+        gender: Value(gender),
+        pluralForm: Value(pluralForm),
+        pronunciation: Value(pronunciation),
+        exampleUsage: Value(exampleUsage),
+        lastReview: Value(lastReview),
+        nextReviewDue: Value(nextReviewDue),
+        lastModified: Value(DateTime.now()),
+      ),
+    );
   }
 
   Future<void> updateLastReview(int cardID, DateTime newDate) async {
     await (dB.update(dB.cards)..where((tbl) => tbl.id.equals(cardID))).write(
       CardsCompanion(
         lastReview: Value(newDate),
+        lastModified: Value(DateTime.now()),
       ),
     );
   }
@@ -180,6 +185,7 @@ class DatabaseService {
     await (dB.update(dB.cards)..where((tbl) => tbl.id.equals(cardID))).write(
       CardsCompanion(
         nextReviewDue: Value(newDate),
+        lastModified: Value(DateTime.now()),
       ),
     );
   }
@@ -211,8 +217,21 @@ class DatabaseService {
 
   Future<void> createLangCat(String language) async {
     await dB.into(dB.languages).insert(
-          LanguagesCompanion.insert(language: language),
+          LanguagesCompanion.insert(
+            language: language,
+            syncId: Value(_uuid.v4()),
+            lastModified: Value(DateTime.now()),
+          ),
         );
+  }
+
+  Future<void> updateLangName(int id, String newName) async {
+    await (dB.update(dB.languages)..where((l) => l.id.equals(id))).write(
+      LanguagesCompanion(
+        language: Value(newName),
+        lastModified: Value(DateTime.now()),
+      ),
+    );
   }
 
   Future<int> deleteLang(int id) {
@@ -248,7 +267,11 @@ class DatabaseService {
 
   Future<void> createCategory(String category) async {
     await dB.into(dB.categories).insert(
-          CategoriesCompanion.insert(category: category),
+          CategoriesCompanion.insert(
+            category: category,
+            syncId: Value(_uuid.v4()),
+            lastModified: Value(DateTime.now()),
+          ),
         );
   }
 
@@ -256,6 +279,47 @@ class DatabaseService {
     return (dB.delete(dB.categories)
           ..where((category) => category.id.equals(id)))
         .go();
+  }
+
+  // @@@@@@@@@@@@@@@@@@@@@@@@@ \\
+  // @|     GENDER STUFF     |@ \\
+  // @@@@@@@@@@@@@@@@@@@@@@@@@ \\
+
+  Future<void> replaceGendersForLang(int langId, List<String> genders) async {
+    await (dB.delete(dB.genders)..where((g) => g.language.equals(langId))).go();
+    for (final gender in genders) {
+      await dB.into(dB.genders).insert(
+            GendersCompanion.insert(
+              language: langId,
+              gender: gender,
+              syncId: Value(_uuid.v4()),
+              lastModified: Value(DateTime.now()),
+            ),
+          );
+    }
+  }
+
+  Future<List<Gender>> getGendersOfLang(String language) async {
+    final int langID = await getLangID(language);
+    return await (dB.select(dB.genders)
+          ..where((g) => g.language.equals(langID)))
+        .get();
+  }
+
+  Future<void> createGender(String language, String gender) async {
+    final int langID = await getLangID(language);
+    await dB.into(dB.genders).insert(
+          GendersCompanion.insert(
+            language: langID,
+            gender: gender,
+            syncId: Value(_uuid.v4()),
+            lastModified: Value(DateTime.now()),
+          ),
+        );
+  }
+
+  Future<int> deleteGender(int id) {
+    return (dB.delete(dB.genders)..where((g) => g.id.equals(id))).go();
   }
 
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ \\
