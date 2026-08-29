@@ -24,8 +24,19 @@ class $LanguagesTable extends Languages
   late final GeneratedColumn<String> language = GeneratedColumn<String>(
       'language', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _syncIdMeta = const VerificationMeta('syncId');
   @override
-  List<GeneratedColumn> get $columns => [id, language];
+  late final GeneratedColumn<String> syncId = GeneratedColumn<String>(
+      'sync_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lastModifiedMeta =
+      const VerificationMeta('lastModified');
+  @override
+  late final GeneratedColumn<DateTime> lastModified = GeneratedColumn<DateTime>(
+      'last_modified', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [id, language, syncId, lastModified];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -45,6 +56,16 @@ class $LanguagesTable extends Languages
     } else if (isInserting) {
       context.missing(_languageMeta);
     }
+    if (data.containsKey('sync_id')) {
+      context.handle(_syncIdMeta,
+          syncId.isAcceptableOrUnknown(data['sync_id']!, _syncIdMeta));
+    }
+    if (data.containsKey('last_modified')) {
+      context.handle(
+          _lastModifiedMeta,
+          lastModified.isAcceptableOrUnknown(
+              data['last_modified']!, _lastModifiedMeta));
+    }
     return context;
   }
 
@@ -58,6 +79,10 @@ class $LanguagesTable extends Languages
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       language: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}language'])!,
+      syncId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sync_id']),
+      lastModified: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}last_modified']),
     );
   }
 
@@ -70,12 +95,24 @@ class $LanguagesTable extends Languages
 class Language extends DataClass implements Insertable<Language> {
   final int id;
   final String language;
-  const Language({required this.id, required this.language});
+  final String? syncId;
+  final DateTime? lastModified;
+  const Language(
+      {required this.id,
+      required this.language,
+      this.syncId,
+      this.lastModified});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['language'] = Variable<String>(language);
+    if (!nullToAbsent || syncId != null) {
+      map['sync_id'] = Variable<String>(syncId);
+    }
+    if (!nullToAbsent || lastModified != null) {
+      map['last_modified'] = Variable<DateTime>(lastModified);
+    }
     return map;
   }
 
@@ -83,6 +120,11 @@ class Language extends DataClass implements Insertable<Language> {
     return LanguagesCompanion(
       id: Value(id),
       language: Value(language),
+      syncId:
+          syncId == null && nullToAbsent ? const Value.absent() : Value(syncId),
+      lastModified: lastModified == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastModified),
     );
   }
 
@@ -92,6 +134,8 @@ class Language extends DataClass implements Insertable<Language> {
     return Language(
       id: serializer.fromJson<int>(json['id']),
       language: serializer.fromJson<String>(json['language']),
+      syncId: serializer.fromJson<String?>(json['syncId']),
+      lastModified: serializer.fromJson<DateTime?>(json['lastModified']),
     );
   }
   @override
@@ -100,17 +144,31 @@ class Language extends DataClass implements Insertable<Language> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'language': serializer.toJson<String>(language),
+      'syncId': serializer.toJson<String?>(syncId),
+      'lastModified': serializer.toJson<DateTime?>(lastModified),
     };
   }
 
-  Language copyWith({int? id, String? language}) => Language(
+  Language copyWith(
+          {int? id,
+          String? language,
+          Value<String?> syncId = const Value.absent(),
+          Value<DateTime?> lastModified = const Value.absent()}) =>
+      Language(
         id: id ?? this.id,
         language: language ?? this.language,
+        syncId: syncId.present ? syncId.value : this.syncId,
+        lastModified:
+            lastModified.present ? lastModified.value : this.lastModified,
       );
   Language copyWithCompanion(LanguagesCompanion data) {
     return Language(
       id: data.id.present ? data.id.value : this.id,
       language: data.language.present ? data.language.value : this.language,
+      syncId: data.syncId.present ? data.syncId.value : this.syncId,
+      lastModified: data.lastModified.present
+          ? data.lastModified.value
+          : this.lastModified,
     );
   }
 
@@ -118,46 +176,66 @@ class Language extends DataClass implements Insertable<Language> {
   String toString() {
     return (StringBuffer('Language(')
           ..write('id: $id, ')
-          ..write('language: $language')
+          ..write('language: $language, ')
+          ..write('syncId: $syncId, ')
+          ..write('lastModified: $lastModified')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, language);
+  int get hashCode => Object.hash(id, language, syncId, lastModified);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Language &&
           other.id == this.id &&
-          other.language == this.language);
+          other.language == this.language &&
+          other.syncId == this.syncId &&
+          other.lastModified == this.lastModified);
 }
 
 class LanguagesCompanion extends UpdateCompanion<Language> {
   final Value<int> id;
   final Value<String> language;
+  final Value<String?> syncId;
+  final Value<DateTime?> lastModified;
   const LanguagesCompanion({
     this.id = const Value.absent(),
     this.language = const Value.absent(),
+    this.syncId = const Value.absent(),
+    this.lastModified = const Value.absent(),
   });
   LanguagesCompanion.insert({
     this.id = const Value.absent(),
     required String language,
+    this.syncId = const Value.absent(),
+    this.lastModified = const Value.absent(),
   }) : language = Value(language);
   static Insertable<Language> custom({
     Expression<int>? id,
     Expression<String>? language,
+    Expression<String>? syncId,
+    Expression<DateTime>? lastModified,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (language != null) 'language': language,
+      if (syncId != null) 'sync_id': syncId,
+      if (lastModified != null) 'last_modified': lastModified,
     });
   }
 
-  LanguagesCompanion copyWith({Value<int>? id, Value<String>? language}) {
+  LanguagesCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? language,
+      Value<String?>? syncId,
+      Value<DateTime?>? lastModified}) {
     return LanguagesCompanion(
       id: id ?? this.id,
       language: language ?? this.language,
+      syncId: syncId ?? this.syncId,
+      lastModified: lastModified ?? this.lastModified,
     );
   }
 
@@ -170,6 +248,12 @@ class LanguagesCompanion extends UpdateCompanion<Language> {
     if (language.present) {
       map['language'] = Variable<String>(language.value);
     }
+    if (syncId.present) {
+      map['sync_id'] = Variable<String>(syncId.value);
+    }
+    if (lastModified.present) {
+      map['last_modified'] = Variable<DateTime>(lastModified.value);
+    }
     return map;
   }
 
@@ -177,7 +261,9 @@ class LanguagesCompanion extends UpdateCompanion<Language> {
   String toString() {
     return (StringBuffer('LanguagesCompanion(')
           ..write('id: $id, ')
-          ..write('language: $language')
+          ..write('language: $language, ')
+          ..write('syncId: $syncId, ')
+          ..write('lastModified: $lastModified')
           ..write(')'))
         .toString();
   }
@@ -204,8 +290,19 @@ class $CategoriesTable extends Categories
   late final GeneratedColumn<String> category = GeneratedColumn<String>(
       'category', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _syncIdMeta = const VerificationMeta('syncId');
   @override
-  List<GeneratedColumn> get $columns => [id, category];
+  late final GeneratedColumn<String> syncId = GeneratedColumn<String>(
+      'sync_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lastModifiedMeta =
+      const VerificationMeta('lastModified');
+  @override
+  late final GeneratedColumn<DateTime> lastModified = GeneratedColumn<DateTime>(
+      'last_modified', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [id, category, syncId, lastModified];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -225,6 +322,16 @@ class $CategoriesTable extends Categories
     } else if (isInserting) {
       context.missing(_categoryMeta);
     }
+    if (data.containsKey('sync_id')) {
+      context.handle(_syncIdMeta,
+          syncId.isAcceptableOrUnknown(data['sync_id']!, _syncIdMeta));
+    }
+    if (data.containsKey('last_modified')) {
+      context.handle(
+          _lastModifiedMeta,
+          lastModified.isAcceptableOrUnknown(
+              data['last_modified']!, _lastModifiedMeta));
+    }
     return context;
   }
 
@@ -238,6 +345,10 @@ class $CategoriesTable extends Categories
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       category: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}category'])!,
+      syncId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sync_id']),
+      lastModified: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}last_modified']),
     );
   }
 
@@ -250,12 +361,24 @@ class $CategoriesTable extends Categories
 class Category extends DataClass implements Insertable<Category> {
   final int id;
   final String category;
-  const Category({required this.id, required this.category});
+  final String? syncId;
+  final DateTime? lastModified;
+  const Category(
+      {required this.id,
+      required this.category,
+      this.syncId,
+      this.lastModified});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['category'] = Variable<String>(category);
+    if (!nullToAbsent || syncId != null) {
+      map['sync_id'] = Variable<String>(syncId);
+    }
+    if (!nullToAbsent || lastModified != null) {
+      map['last_modified'] = Variable<DateTime>(lastModified);
+    }
     return map;
   }
 
@@ -263,6 +386,11 @@ class Category extends DataClass implements Insertable<Category> {
     return CategoriesCompanion(
       id: Value(id),
       category: Value(category),
+      syncId:
+          syncId == null && nullToAbsent ? const Value.absent() : Value(syncId),
+      lastModified: lastModified == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastModified),
     );
   }
 
@@ -272,6 +400,8 @@ class Category extends DataClass implements Insertable<Category> {
     return Category(
       id: serializer.fromJson<int>(json['id']),
       category: serializer.fromJson<String>(json['category']),
+      syncId: serializer.fromJson<String?>(json['syncId']),
+      lastModified: serializer.fromJson<DateTime?>(json['lastModified']),
     );
   }
   @override
@@ -280,17 +410,31 @@ class Category extends DataClass implements Insertable<Category> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'category': serializer.toJson<String>(category),
+      'syncId': serializer.toJson<String?>(syncId),
+      'lastModified': serializer.toJson<DateTime?>(lastModified),
     };
   }
 
-  Category copyWith({int? id, String? category}) => Category(
+  Category copyWith(
+          {int? id,
+          String? category,
+          Value<String?> syncId = const Value.absent(),
+          Value<DateTime?> lastModified = const Value.absent()}) =>
+      Category(
         id: id ?? this.id,
         category: category ?? this.category,
+        syncId: syncId.present ? syncId.value : this.syncId,
+        lastModified:
+            lastModified.present ? lastModified.value : this.lastModified,
       );
   Category copyWithCompanion(CategoriesCompanion data) {
     return Category(
       id: data.id.present ? data.id.value : this.id,
       category: data.category.present ? data.category.value : this.category,
+      syncId: data.syncId.present ? data.syncId.value : this.syncId,
+      lastModified: data.lastModified.present
+          ? data.lastModified.value
+          : this.lastModified,
     );
   }
 
@@ -298,46 +442,66 @@ class Category extends DataClass implements Insertable<Category> {
   String toString() {
     return (StringBuffer('Category(')
           ..write('id: $id, ')
-          ..write('category: $category')
+          ..write('category: $category, ')
+          ..write('syncId: $syncId, ')
+          ..write('lastModified: $lastModified')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, category);
+  int get hashCode => Object.hash(id, category, syncId, lastModified);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Category &&
           other.id == this.id &&
-          other.category == this.category);
+          other.category == this.category &&
+          other.syncId == this.syncId &&
+          other.lastModified == this.lastModified);
 }
 
 class CategoriesCompanion extends UpdateCompanion<Category> {
   final Value<int> id;
   final Value<String> category;
+  final Value<String?> syncId;
+  final Value<DateTime?> lastModified;
   const CategoriesCompanion({
     this.id = const Value.absent(),
     this.category = const Value.absent(),
+    this.syncId = const Value.absent(),
+    this.lastModified = const Value.absent(),
   });
   CategoriesCompanion.insert({
     this.id = const Value.absent(),
     required String category,
+    this.syncId = const Value.absent(),
+    this.lastModified = const Value.absent(),
   }) : category = Value(category);
   static Insertable<Category> custom({
     Expression<int>? id,
     Expression<String>? category,
+    Expression<String>? syncId,
+    Expression<DateTime>? lastModified,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (category != null) 'category': category,
+      if (syncId != null) 'sync_id': syncId,
+      if (lastModified != null) 'last_modified': lastModified,
     });
   }
 
-  CategoriesCompanion copyWith({Value<int>? id, Value<String>? category}) {
+  CategoriesCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? category,
+      Value<String?>? syncId,
+      Value<DateTime?>? lastModified}) {
     return CategoriesCompanion(
       id: id ?? this.id,
       category: category ?? this.category,
+      syncId: syncId ?? this.syncId,
+      lastModified: lastModified ?? this.lastModified,
     );
   }
 
@@ -350,6 +514,12 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     if (category.present) {
       map['category'] = Variable<String>(category.value);
     }
+    if (syncId.present) {
+      map['sync_id'] = Variable<String>(syncId.value);
+    }
+    if (lastModified.present) {
+      map['last_modified'] = Variable<DateTime>(lastModified.value);
+    }
     return map;
   }
 
@@ -357,7 +527,9 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
   String toString() {
     return (StringBuffer('CategoriesCompanion(')
           ..write('id: $id, ')
-          ..write('category: $category')
+          ..write('category: $category, ')
+          ..write('syncId: $syncId, ')
+          ..write('lastModified: $lastModified')
           ..write(')'))
         .toString();
   }
@@ -442,6 +614,17 @@ class $CardsTable extends Cards with TableInfo<$CardsTable, Card> {
   late final GeneratedColumn<DateTime> nextReviewDue =
       GeneratedColumn<DateTime>('next_review_due', aliasedName, false,
           type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _syncIdMeta = const VerificationMeta('syncId');
+  @override
+  late final GeneratedColumn<String> syncId = GeneratedColumn<String>(
+      'sync_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lastModifiedMeta =
+      const VerificationMeta('lastModified');
+  @override
+  late final GeneratedColumn<DateTime> lastModified = GeneratedColumn<DateTime>(
+      'last_modified', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -454,7 +637,9 @@ class $CardsTable extends Cards with TableInfo<$CardsTable, Card> {
         pluralForm,
         gender,
         lastReview,
-        nextReviewDue
+        nextReviewDue,
+        syncId,
+        lastModified
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -535,6 +720,16 @@ class $CardsTable extends Cards with TableInfo<$CardsTable, Card> {
     } else if (isInserting) {
       context.missing(_nextReviewDueMeta);
     }
+    if (data.containsKey('sync_id')) {
+      context.handle(_syncIdMeta,
+          syncId.isAcceptableOrUnknown(data['sync_id']!, _syncIdMeta));
+    }
+    if (data.containsKey('last_modified')) {
+      context.handle(
+          _lastModifiedMeta,
+          lastModified.isAcceptableOrUnknown(
+              data['last_modified']!, _lastModifiedMeta));
+    }
     return context;
   }
 
@@ -566,6 +761,10 @@ class $CardsTable extends Cards with TableInfo<$CardsTable, Card> {
           .read(DriftSqlType.dateTime, data['${effectivePrefix}last_review'])!,
       nextReviewDue: attachedDatabase.typeMapping.read(
           DriftSqlType.dateTime, data['${effectivePrefix}next_review_due'])!,
+      syncId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sync_id']),
+      lastModified: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}last_modified']),
     );
   }
 
@@ -587,6 +786,8 @@ class Card extends DataClass implements Insertable<Card> {
   final String? gender;
   final DateTime lastReview;
   final DateTime nextReviewDue;
+  final String? syncId;
+  final DateTime? lastModified;
   const Card(
       {required this.id,
       required this.language,
@@ -598,7 +799,9 @@ class Card extends DataClass implements Insertable<Card> {
       this.pluralForm,
       this.gender,
       required this.lastReview,
-      required this.nextReviewDue});
+      required this.nextReviewDue,
+      this.syncId,
+      this.lastModified});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -621,6 +824,12 @@ class Card extends DataClass implements Insertable<Card> {
     }
     map['last_review'] = Variable<DateTime>(lastReview);
     map['next_review_due'] = Variable<DateTime>(nextReviewDue);
+    if (!nullToAbsent || syncId != null) {
+      map['sync_id'] = Variable<String>(syncId);
+    }
+    if (!nullToAbsent || lastModified != null) {
+      map['last_modified'] = Variable<DateTime>(lastModified);
+    }
     return map;
   }
 
@@ -644,6 +853,11 @@ class Card extends DataClass implements Insertable<Card> {
           gender == null && nullToAbsent ? const Value.absent() : Value(gender),
       lastReview: Value(lastReview),
       nextReviewDue: Value(nextReviewDue),
+      syncId:
+          syncId == null && nullToAbsent ? const Value.absent() : Value(syncId),
+      lastModified: lastModified == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastModified),
     );
   }
 
@@ -662,6 +876,8 @@ class Card extends DataClass implements Insertable<Card> {
       gender: serializer.fromJson<String?>(json['gender']),
       lastReview: serializer.fromJson<DateTime>(json['lastReview']),
       nextReviewDue: serializer.fromJson<DateTime>(json['nextReviewDue']),
+      syncId: serializer.fromJson<String?>(json['syncId']),
+      lastModified: serializer.fromJson<DateTime?>(json['lastModified']),
     );
   }
   @override
@@ -679,6 +895,8 @@ class Card extends DataClass implements Insertable<Card> {
       'gender': serializer.toJson<String?>(gender),
       'lastReview': serializer.toJson<DateTime>(lastReview),
       'nextReviewDue': serializer.toJson<DateTime>(nextReviewDue),
+      'syncId': serializer.toJson<String?>(syncId),
+      'lastModified': serializer.toJson<DateTime?>(lastModified),
     };
   }
 
@@ -693,7 +911,9 @@ class Card extends DataClass implements Insertable<Card> {
           Value<String?> pluralForm = const Value.absent(),
           Value<String?> gender = const Value.absent(),
           DateTime? lastReview,
-          DateTime? nextReviewDue}) =>
+          DateTime? nextReviewDue,
+          Value<String?> syncId = const Value.absent(),
+          Value<DateTime?> lastModified = const Value.absent()}) =>
       Card(
         id: id ?? this.id,
         language: language ?? this.language,
@@ -708,6 +928,9 @@ class Card extends DataClass implements Insertable<Card> {
         gender: gender.present ? gender.value : this.gender,
         lastReview: lastReview ?? this.lastReview,
         nextReviewDue: nextReviewDue ?? this.nextReviewDue,
+        syncId: syncId.present ? syncId.value : this.syncId,
+        lastModified:
+            lastModified.present ? lastModified.value : this.lastModified,
       );
   Card copyWithCompanion(CardsCompanion data) {
     return Card(
@@ -734,6 +957,10 @@ class Card extends DataClass implements Insertable<Card> {
       nextReviewDue: data.nextReviewDue.present
           ? data.nextReviewDue.value
           : this.nextReviewDue,
+      syncId: data.syncId.present ? data.syncId.value : this.syncId,
+      lastModified: data.lastModified.present
+          ? data.lastModified.value
+          : this.lastModified,
     );
   }
 
@@ -750,7 +977,9 @@ class Card extends DataClass implements Insertable<Card> {
           ..write('pluralForm: $pluralForm, ')
           ..write('gender: $gender, ')
           ..write('lastReview: $lastReview, ')
-          ..write('nextReviewDue: $nextReviewDue')
+          ..write('nextReviewDue: $nextReviewDue, ')
+          ..write('syncId: $syncId, ')
+          ..write('lastModified: $lastModified')
           ..write(')'))
         .toString();
   }
@@ -767,7 +996,9 @@ class Card extends DataClass implements Insertable<Card> {
       pluralForm,
       gender,
       lastReview,
-      nextReviewDue);
+      nextReviewDue,
+      syncId,
+      lastModified);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -782,7 +1013,9 @@ class Card extends DataClass implements Insertable<Card> {
           other.pluralForm == this.pluralForm &&
           other.gender == this.gender &&
           other.lastReview == this.lastReview &&
-          other.nextReviewDue == this.nextReviewDue);
+          other.nextReviewDue == this.nextReviewDue &&
+          other.syncId == this.syncId &&
+          other.lastModified == this.lastModified);
 }
 
 class CardsCompanion extends UpdateCompanion<Card> {
@@ -797,6 +1030,8 @@ class CardsCompanion extends UpdateCompanion<Card> {
   final Value<String?> gender;
   final Value<DateTime> lastReview;
   final Value<DateTime> nextReviewDue;
+  final Value<String?> syncId;
+  final Value<DateTime?> lastModified;
   const CardsCompanion({
     this.id = const Value.absent(),
     this.language = const Value.absent(),
@@ -809,6 +1044,8 @@ class CardsCompanion extends UpdateCompanion<Card> {
     this.gender = const Value.absent(),
     this.lastReview = const Value.absent(),
     this.nextReviewDue = const Value.absent(),
+    this.syncId = const Value.absent(),
+    this.lastModified = const Value.absent(),
   });
   CardsCompanion.insert({
     this.id = const Value.absent(),
@@ -822,6 +1059,8 @@ class CardsCompanion extends UpdateCompanion<Card> {
     this.gender = const Value.absent(),
     required DateTime lastReview,
     required DateTime nextReviewDue,
+    this.syncId = const Value.absent(),
+    this.lastModified = const Value.absent(),
   })  : language = Value(language),
         category = Value(category),
         frontContent = Value(frontContent),
@@ -840,6 +1079,8 @@ class CardsCompanion extends UpdateCompanion<Card> {
     Expression<String>? gender,
     Expression<DateTime>? lastReview,
     Expression<DateTime>? nextReviewDue,
+    Expression<String>? syncId,
+    Expression<DateTime>? lastModified,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -853,6 +1094,8 @@ class CardsCompanion extends UpdateCompanion<Card> {
       if (gender != null) 'gender': gender,
       if (lastReview != null) 'last_review': lastReview,
       if (nextReviewDue != null) 'next_review_due': nextReviewDue,
+      if (syncId != null) 'sync_id': syncId,
+      if (lastModified != null) 'last_modified': lastModified,
     });
   }
 
@@ -867,7 +1110,9 @@ class CardsCompanion extends UpdateCompanion<Card> {
       Value<String?>? pluralForm,
       Value<String?>? gender,
       Value<DateTime>? lastReview,
-      Value<DateTime>? nextReviewDue}) {
+      Value<DateTime>? nextReviewDue,
+      Value<String?>? syncId,
+      Value<DateTime?>? lastModified}) {
     return CardsCompanion(
       id: id ?? this.id,
       language: language ?? this.language,
@@ -880,6 +1125,8 @@ class CardsCompanion extends UpdateCompanion<Card> {
       gender: gender ?? this.gender,
       lastReview: lastReview ?? this.lastReview,
       nextReviewDue: nextReviewDue ?? this.nextReviewDue,
+      syncId: syncId ?? this.syncId,
+      lastModified: lastModified ?? this.lastModified,
     );
   }
 
@@ -919,6 +1166,12 @@ class CardsCompanion extends UpdateCompanion<Card> {
     if (nextReviewDue.present) {
       map['next_review_due'] = Variable<DateTime>(nextReviewDue.value);
     }
+    if (syncId.present) {
+      map['sync_id'] = Variable<String>(syncId.value);
+    }
+    if (lastModified.present) {
+      map['last_modified'] = Variable<DateTime>(lastModified.value);
+    }
     return map;
   }
 
@@ -935,7 +1188,9 @@ class CardsCompanion extends UpdateCompanion<Card> {
           ..write('pluralForm: $pluralForm, ')
           ..write('gender: $gender, ')
           ..write('lastReview: $lastReview, ')
-          ..write('nextReviewDue: $nextReviewDue')
+          ..write('nextReviewDue: $nextReviewDue, ')
+          ..write('syncId: $syncId, ')
+          ..write('lastModified: $lastModified')
           ..write(')'))
         .toString();
   }
@@ -969,8 +1224,20 @@ class $GendersTable extends Genders with TableInfo<$GendersTable, Gender> {
   late final GeneratedColumn<String> gender = GeneratedColumn<String>(
       'gender', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _syncIdMeta = const VerificationMeta('syncId');
   @override
-  List<GeneratedColumn> get $columns => [id, language, gender];
+  late final GeneratedColumn<String> syncId = GeneratedColumn<String>(
+      'sync_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lastModifiedMeta =
+      const VerificationMeta('lastModified');
+  @override
+  late final GeneratedColumn<DateTime> lastModified = GeneratedColumn<DateTime>(
+      'last_modified', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, language, gender, syncId, lastModified];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -996,6 +1263,16 @@ class $GendersTable extends Genders with TableInfo<$GendersTable, Gender> {
     } else if (isInserting) {
       context.missing(_genderMeta);
     }
+    if (data.containsKey('sync_id')) {
+      context.handle(_syncIdMeta,
+          syncId.isAcceptableOrUnknown(data['sync_id']!, _syncIdMeta));
+    }
+    if (data.containsKey('last_modified')) {
+      context.handle(
+          _lastModifiedMeta,
+          lastModified.isAcceptableOrUnknown(
+              data['last_modified']!, _lastModifiedMeta));
+    }
     return context;
   }
 
@@ -1011,6 +1288,10 @@ class $GendersTable extends Genders with TableInfo<$GendersTable, Gender> {
           .read(DriftSqlType.int, data['${effectivePrefix}language'])!,
       gender: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}gender'])!,
+      syncId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sync_id']),
+      lastModified: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}last_modified']),
     );
   }
 
@@ -1024,14 +1305,26 @@ class Gender extends DataClass implements Insertable<Gender> {
   final int id;
   final int language;
   final String gender;
+  final String? syncId;
+  final DateTime? lastModified;
   const Gender(
-      {required this.id, required this.language, required this.gender});
+      {required this.id,
+      required this.language,
+      required this.gender,
+      this.syncId,
+      this.lastModified});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['language'] = Variable<int>(language);
     map['gender'] = Variable<String>(gender);
+    if (!nullToAbsent || syncId != null) {
+      map['sync_id'] = Variable<String>(syncId);
+    }
+    if (!nullToAbsent || lastModified != null) {
+      map['last_modified'] = Variable<DateTime>(lastModified);
+    }
     return map;
   }
 
@@ -1040,6 +1333,11 @@ class Gender extends DataClass implements Insertable<Gender> {
       id: Value(id),
       language: Value(language),
       gender: Value(gender),
+      syncId:
+          syncId == null && nullToAbsent ? const Value.absent() : Value(syncId),
+      lastModified: lastModified == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastModified),
     );
   }
 
@@ -1050,6 +1348,8 @@ class Gender extends DataClass implements Insertable<Gender> {
       id: serializer.fromJson<int>(json['id']),
       language: serializer.fromJson<int>(json['language']),
       gender: serializer.fromJson<String>(json['gender']),
+      syncId: serializer.fromJson<String?>(json['syncId']),
+      lastModified: serializer.fromJson<DateTime?>(json['lastModified']),
     );
   }
   @override
@@ -1059,19 +1359,34 @@ class Gender extends DataClass implements Insertable<Gender> {
       'id': serializer.toJson<int>(id),
       'language': serializer.toJson<int>(language),
       'gender': serializer.toJson<String>(gender),
+      'syncId': serializer.toJson<String?>(syncId),
+      'lastModified': serializer.toJson<DateTime?>(lastModified),
     };
   }
 
-  Gender copyWith({int? id, int? language, String? gender}) => Gender(
+  Gender copyWith(
+          {int? id,
+          int? language,
+          String? gender,
+          Value<String?> syncId = const Value.absent(),
+          Value<DateTime?> lastModified = const Value.absent()}) =>
+      Gender(
         id: id ?? this.id,
         language: language ?? this.language,
         gender: gender ?? this.gender,
+        syncId: syncId.present ? syncId.value : this.syncId,
+        lastModified:
+            lastModified.present ? lastModified.value : this.lastModified,
       );
   Gender copyWithCompanion(GendersCompanion data) {
     return Gender(
       id: data.id.present ? data.id.value : this.id,
       language: data.language.present ? data.language.value : this.language,
       gender: data.gender.present ? data.gender.value : this.gender,
+      syncId: data.syncId.present ? data.syncId.value : this.syncId,
+      lastModified: data.lastModified.present
+          ? data.lastModified.value
+          : this.lastModified,
     );
   }
 
@@ -1080,55 +1395,75 @@ class Gender extends DataClass implements Insertable<Gender> {
     return (StringBuffer('Gender(')
           ..write('id: $id, ')
           ..write('language: $language, ')
-          ..write('gender: $gender')
+          ..write('gender: $gender, ')
+          ..write('syncId: $syncId, ')
+          ..write('lastModified: $lastModified')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, language, gender);
+  int get hashCode => Object.hash(id, language, gender, syncId, lastModified);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Gender &&
           other.id == this.id &&
           other.language == this.language &&
-          other.gender == this.gender);
+          other.gender == this.gender &&
+          other.syncId == this.syncId &&
+          other.lastModified == this.lastModified);
 }
 
 class GendersCompanion extends UpdateCompanion<Gender> {
   final Value<int> id;
   final Value<int> language;
   final Value<String> gender;
+  final Value<String?> syncId;
+  final Value<DateTime?> lastModified;
   const GendersCompanion({
     this.id = const Value.absent(),
     this.language = const Value.absent(),
     this.gender = const Value.absent(),
+    this.syncId = const Value.absent(),
+    this.lastModified = const Value.absent(),
   });
   GendersCompanion.insert({
     this.id = const Value.absent(),
     required int language,
     required String gender,
+    this.syncId = const Value.absent(),
+    this.lastModified = const Value.absent(),
   })  : language = Value(language),
         gender = Value(gender);
   static Insertable<Gender> custom({
     Expression<int>? id,
     Expression<int>? language,
     Expression<String>? gender,
+    Expression<String>? syncId,
+    Expression<DateTime>? lastModified,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (language != null) 'language': language,
       if (gender != null) 'gender': gender,
+      if (syncId != null) 'sync_id': syncId,
+      if (lastModified != null) 'last_modified': lastModified,
     });
   }
 
   GendersCompanion copyWith(
-      {Value<int>? id, Value<int>? language, Value<String>? gender}) {
+      {Value<int>? id,
+      Value<int>? language,
+      Value<String>? gender,
+      Value<String?>? syncId,
+      Value<DateTime?>? lastModified}) {
     return GendersCompanion(
       id: id ?? this.id,
       language: language ?? this.language,
       gender: gender ?? this.gender,
+      syncId: syncId ?? this.syncId,
+      lastModified: lastModified ?? this.lastModified,
     );
   }
 
@@ -1144,6 +1479,12 @@ class GendersCompanion extends UpdateCompanion<Gender> {
     if (gender.present) {
       map['gender'] = Variable<String>(gender.value);
     }
+    if (syncId.present) {
+      map['sync_id'] = Variable<String>(syncId.value);
+    }
+    if (lastModified.present) {
+      map['last_modified'] = Variable<DateTime>(lastModified.value);
+    }
     return map;
   }
 
@@ -1152,7 +1493,9 @@ class GendersCompanion extends UpdateCompanion<Gender> {
     return (StringBuffer('GendersCompanion(')
           ..write('id: $id, ')
           ..write('language: $language, ')
-          ..write('gender: $gender')
+          ..write('gender: $gender, ')
+          ..write('syncId: $syncId, ')
+          ..write('lastModified: $lastModified')
           ..write(')'))
         .toString();
   }
@@ -1176,10 +1519,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$LanguagesTableCreateCompanionBuilder = LanguagesCompanion Function({
   Value<int> id,
   required String language,
+  Value<String?> syncId,
+  Value<DateTime?> lastModified,
 });
 typedef $$LanguagesTableUpdateCompanionBuilder = LanguagesCompanion Function({
   Value<int> id,
   Value<String> language,
+  Value<String?> syncId,
+  Value<DateTime?> lastModified,
 });
 
 final class $$LanguagesTableReferences
@@ -1230,6 +1577,12 @@ class $$LanguagesTableFilterComposer
 
   ColumnFilters<String> get language => $composableBuilder(
       column: $table.language, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get syncId => $composableBuilder(
+      column: $table.syncId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified, builder: (column) => ColumnFilters(column));
 
   Expression<bool> cardsRefs(
       Expression<bool> Function($$CardsTableFilterComposer f) f) {
@@ -1288,6 +1641,13 @@ class $$LanguagesTableOrderingComposer
 
   ColumnOrderings<String> get language => $composableBuilder(
       column: $table.language, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get syncId => $composableBuilder(
+      column: $table.syncId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$LanguagesTableAnnotationComposer
@@ -1304,6 +1664,12 @@ class $$LanguagesTableAnnotationComposer
 
   GeneratedColumn<String> get language =>
       $composableBuilder(column: $table.language, builder: (column) => column);
+
+  GeneratedColumn<String> get syncId =>
+      $composableBuilder(column: $table.syncId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified, builder: (column) => column);
 
   Expression<T> cardsRefs<T extends Object>(
       Expression<T> Function($$CardsTableAnnotationComposer a) f) {
@@ -1373,18 +1739,26 @@ class $$LanguagesTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> language = const Value.absent(),
+            Value<String?> syncId = const Value.absent(),
+            Value<DateTime?> lastModified = const Value.absent(),
           }) =>
               LanguagesCompanion(
             id: id,
             language: language,
+            syncId: syncId,
+            lastModified: lastModified,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String language,
+            Value<String?> syncId = const Value.absent(),
+            Value<DateTime?> lastModified = const Value.absent(),
           }) =>
               LanguagesCompanion.insert(
             id: id,
             language: language,
+            syncId: syncId,
+            lastModified: lastModified,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
@@ -1448,10 +1822,14 @@ typedef $$LanguagesTableProcessedTableManager = ProcessedTableManager<
 typedef $$CategoriesTableCreateCompanionBuilder = CategoriesCompanion Function({
   Value<int> id,
   required String category,
+  Value<String?> syncId,
+  Value<DateTime?> lastModified,
 });
 typedef $$CategoriesTableUpdateCompanionBuilder = CategoriesCompanion Function({
   Value<int> id,
   Value<String> category,
+  Value<String?> syncId,
+  Value<DateTime?> lastModified,
 });
 
 final class $$CategoriesTableReferences
@@ -1487,6 +1865,12 @@ class $$CategoriesTableFilterComposer
 
   ColumnFilters<String> get category => $composableBuilder(
       column: $table.category, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get syncId => $composableBuilder(
+      column: $table.syncId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified, builder: (column) => ColumnFilters(column));
 
   Expression<bool> cardsRefs(
       Expression<bool> Function($$CardsTableFilterComposer f) f) {
@@ -1524,6 +1908,13 @@ class $$CategoriesTableOrderingComposer
 
   ColumnOrderings<String> get category => $composableBuilder(
       column: $table.category, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get syncId => $composableBuilder(
+      column: $table.syncId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$CategoriesTableAnnotationComposer
@@ -1540,6 +1931,12 @@ class $$CategoriesTableAnnotationComposer
 
   GeneratedColumn<String> get category =>
       $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get syncId =>
+      $composableBuilder(column: $table.syncId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified, builder: (column) => column);
 
   Expression<T> cardsRefs<T extends Object>(
       Expression<T> Function($$CardsTableAnnotationComposer a) f) {
@@ -1588,18 +1985,26 @@ class $$CategoriesTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> category = const Value.absent(),
+            Value<String?> syncId = const Value.absent(),
+            Value<DateTime?> lastModified = const Value.absent(),
           }) =>
               CategoriesCompanion(
             id: id,
             category: category,
+            syncId: syncId,
+            lastModified: lastModified,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String category,
+            Value<String?> syncId = const Value.absent(),
+            Value<DateTime?> lastModified = const Value.absent(),
           }) =>
               CategoriesCompanion.insert(
             id: id,
             category: category,
+            syncId: syncId,
+            lastModified: lastModified,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
@@ -1657,6 +2062,8 @@ typedef $$CardsTableCreateCompanionBuilder = CardsCompanion Function({
   Value<String?> gender,
   required DateTime lastReview,
   required DateTime nextReviewDue,
+  Value<String?> syncId,
+  Value<DateTime?> lastModified,
 });
 typedef $$CardsTableUpdateCompanionBuilder = CardsCompanion Function({
   Value<int> id,
@@ -1670,6 +2077,8 @@ typedef $$CardsTableUpdateCompanionBuilder = CardsCompanion Function({
   Value<String?> gender,
   Value<DateTime> lastReview,
   Value<DateTime> nextReviewDue,
+  Value<String?> syncId,
+  Value<DateTime?> lastModified,
 });
 
 final class $$CardsTableReferences
@@ -1739,6 +2148,12 @@ class $$CardsTableFilterComposer extends Composer<_$AppDatabase, $CardsTable> {
 
   ColumnFilters<DateTime> get nextReviewDue => $composableBuilder(
       column: $table.nextReviewDue, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get syncId => $composableBuilder(
+      column: $table.syncId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified, builder: (column) => ColumnFilters(column));
 
   $$LanguagesTableFilterComposer get language {
     final $$LanguagesTableFilterComposer composer = $composerBuilder(
@@ -1822,6 +2237,13 @@ class $$CardsTableOrderingComposer
       column: $table.nextReviewDue,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get syncId => $composableBuilder(
+      column: $table.syncId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified,
+      builder: (column) => ColumnOrderings(column));
+
   $$LanguagesTableOrderingComposer get language {
     final $$LanguagesTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -1899,6 +2321,12 @@ class $$CardsTableAnnotationComposer
   GeneratedColumn<DateTime> get nextReviewDue => $composableBuilder(
       column: $table.nextReviewDue, builder: (column) => column);
 
+  GeneratedColumn<String> get syncId =>
+      $composableBuilder(column: $table.syncId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified, builder: (column) => column);
+
   $$LanguagesTableAnnotationComposer get language {
     final $$LanguagesTableAnnotationComposer composer = $composerBuilder(
         composer: this,
@@ -1974,6 +2402,8 @@ class $$CardsTableTableManager extends RootTableManager<
             Value<String?> gender = const Value.absent(),
             Value<DateTime> lastReview = const Value.absent(),
             Value<DateTime> nextReviewDue = const Value.absent(),
+            Value<String?> syncId = const Value.absent(),
+            Value<DateTime?> lastModified = const Value.absent(),
           }) =>
               CardsCompanion(
             id: id,
@@ -1987,6 +2417,8 @@ class $$CardsTableTableManager extends RootTableManager<
             gender: gender,
             lastReview: lastReview,
             nextReviewDue: nextReviewDue,
+            syncId: syncId,
+            lastModified: lastModified,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2000,6 +2432,8 @@ class $$CardsTableTableManager extends RootTableManager<
             Value<String?> gender = const Value.absent(),
             required DateTime lastReview,
             required DateTime nextReviewDue,
+            Value<String?> syncId = const Value.absent(),
+            Value<DateTime?> lastModified = const Value.absent(),
           }) =>
               CardsCompanion.insert(
             id: id,
@@ -2013,6 +2447,8 @@ class $$CardsTableTableManager extends RootTableManager<
             gender: gender,
             lastReview: lastReview,
             nextReviewDue: nextReviewDue,
+            syncId: syncId,
+            lastModified: lastModified,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) =>
@@ -2080,11 +2516,15 @@ typedef $$GendersTableCreateCompanionBuilder = GendersCompanion Function({
   Value<int> id,
   required int language,
   required String gender,
+  Value<String?> syncId,
+  Value<DateTime?> lastModified,
 });
 typedef $$GendersTableUpdateCompanionBuilder = GendersCompanion Function({
   Value<int> id,
   Value<int> language,
   Value<String> gender,
+  Value<String?> syncId,
+  Value<DateTime?> lastModified,
 });
 
 final class $$GendersTableReferences
@@ -2120,6 +2560,12 @@ class $$GendersTableFilterComposer
 
   ColumnFilters<String> get gender => $composableBuilder(
       column: $table.gender, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get syncId => $composableBuilder(
+      column: $table.syncId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified, builder: (column) => ColumnFilters(column));
 
   $$LanguagesTableFilterComposer get language {
     final $$LanguagesTableFilterComposer composer = $composerBuilder(
@@ -2157,6 +2603,13 @@ class $$GendersTableOrderingComposer
   ColumnOrderings<String> get gender => $composableBuilder(
       column: $table.gender, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get syncId => $composableBuilder(
+      column: $table.syncId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified,
+      builder: (column) => ColumnOrderings(column));
+
   $$LanguagesTableOrderingComposer get language {
     final $$LanguagesTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -2192,6 +2645,12 @@ class $$GendersTableAnnotationComposer
 
   GeneratedColumn<String> get gender =>
       $composableBuilder(column: $table.gender, builder: (column) => column);
+
+  GeneratedColumn<String> get syncId =>
+      $composableBuilder(column: $table.syncId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified, builder: (column) => column);
 
   $$LanguagesTableAnnotationComposer get language {
     final $$LanguagesTableAnnotationComposer composer = $composerBuilder(
@@ -2240,21 +2699,29 @@ class $$GendersTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<int> language = const Value.absent(),
             Value<String> gender = const Value.absent(),
+            Value<String?> syncId = const Value.absent(),
+            Value<DateTime?> lastModified = const Value.absent(),
           }) =>
               GendersCompanion(
             id: id,
             language: language,
             gender: gender,
+            syncId: syncId,
+            lastModified: lastModified,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required int language,
             required String gender,
+            Value<String?> syncId = const Value.absent(),
+            Value<DateTime?> lastModified = const Value.absent(),
           }) =>
               GendersCompanion.insert(
             id: id,
             language: language,
             gender: gender,
+            syncId: syncId,
+            lastModified: lastModified,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) =>

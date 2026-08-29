@@ -1,9 +1,9 @@
 -- Supabase schema for sr_language_tool
 --
--- IDs mirror the local Drift auto-increment integers.
--- (user_id, id) is globally unique, so no cross-user collisions occur.
--- Limitation: concurrent multi-device writes without syncing can produce
--- diverging IDs. This schema suits a single-primary-device backup model.
+-- sync_id (UUID) is the cross-device record identity and is the primary key.
+-- The local integer id is stored as data for reference.
+-- last_modified enables per-record last-write-wins conflict resolution.
+-- Sync order: languages → categories → genders → cards (FK dependency).
 --
 -- Run this in the Supabase SQL editor before implementing sync logic.
 
@@ -12,9 +12,11 @@
 -- ------------------------------------------------------------------ --
 
 CREATE TABLE public.languages (
-  id          BIGINT PRIMARY KEY,
-  user_id     UUID   NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  language    TEXT   NOT NULL
+  sync_id       UUID        PRIMARY KEY,
+  id            BIGINT      NOT NULL,
+  user_id       UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  language      TEXT        NOT NULL,
+  last_modified TIMESTAMPTZ NOT NULL
 );
 
 ALTER TABLE public.languages ENABLE ROW LEVEL SECURITY;
@@ -27,9 +29,11 @@ CREATE POLICY "users_own_languages" ON public.languages
 -- ------------------------------------------------------------------ --
 
 CREATE TABLE public.categories (
-  id          BIGINT PRIMARY KEY,
-  user_id     UUID   NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  category    TEXT   NOT NULL
+  sync_id       UUID        PRIMARY KEY,
+  id            BIGINT      NOT NULL,
+  user_id       UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  category      TEXT        NOT NULL,
+  last_modified TIMESTAMPTZ NOT NULL
 );
 
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
@@ -42,10 +46,12 @@ CREATE POLICY "users_own_categories" ON public.categories
 -- ------------------------------------------------------------------ --
 
 CREATE TABLE public.genders (
-  id          BIGINT PRIMARY KEY,
-  user_id     UUID   NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  language_id BIGINT NOT NULL REFERENCES public.languages(id) ON DELETE CASCADE,
-  gender      TEXT   NOT NULL
+  sync_id          UUID        PRIMARY KEY,
+  id               BIGINT      NOT NULL,
+  user_id          UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  language_sync_id UUID        NOT NULL REFERENCES public.languages(sync_id) ON DELETE CASCADE,
+  gender           TEXT        NOT NULL,
+  last_modified    TIMESTAMPTZ NOT NULL
 );
 
 ALTER TABLE public.genders ENABLE ROW LEVEL SECURITY;
@@ -58,10 +64,11 @@ CREATE POLICY "users_own_genders" ON public.genders
 -- ------------------------------------------------------------------ --
 
 CREATE TABLE public.cards (
-  id               BIGINT      PRIMARY KEY,
+  sync_id          UUID        PRIMARY KEY,
+  id               BIGINT      NOT NULL,
   user_id          UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  language_id      BIGINT      NOT NULL REFERENCES public.languages(id) ON DELETE CASCADE,
-  category_id      BIGINT      NOT NULL REFERENCES public.categories(id) ON DELETE CASCADE,
+  language_sync_id UUID        NOT NULL REFERENCES public.languages(sync_id) ON DELETE CASCADE,
+  category_sync_id UUID        NOT NULL REFERENCES public.categories(sync_id) ON DELETE CASCADE,
   front_content    TEXT        NOT NULL,
   reveal_content   TEXT        NOT NULL,
   pronunciation    TEXT,
@@ -69,7 +76,8 @@ CREATE TABLE public.cards (
   plural_form      TEXT,
   gender           TEXT,
   last_review      TIMESTAMPTZ NOT NULL,
-  next_review_due  TIMESTAMPTZ NOT NULL
+  next_review_due  TIMESTAMPTZ NOT NULL,
+  last_modified    TIMESTAMPTZ NOT NULL
 );
 
 ALTER TABLE public.cards ENABLE ROW LEVEL SECURITY;
