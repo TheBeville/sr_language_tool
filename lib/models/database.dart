@@ -55,17 +55,33 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(genders);
           }
           if (from < 3) {
-            await m.addColumn(cards, cards.syncId);
-            await m.addColumn(cards, cards.lastModified);
-            await m.addColumn(languages, languages.syncId);
-            await m.addColumn(languages, languages.lastModified);
-            await m.addColumn(categories, categories.syncId);
-            await m.addColumn(categories, categories.lastModified);
-            await m.addColumn(genders, genders.syncId);
-            await m.addColumn(genders, genders.lastModified);
+            await _addColumnIfMissing(m, cards, cards.syncId);
+            await _addColumnIfMissing(m, cards, cards.lastModified);
+            await _addColumnIfMissing(m, languages, languages.syncId);
+            await _addColumnIfMissing(m, languages, languages.lastModified);
+            await _addColumnIfMissing(m, categories, categories.syncId);
+            await _addColumnIfMissing(m, categories, categories.lastModified);
+            await _addColumnIfMissing(m, genders, genders.syncId);
+            await _addColumnIfMissing(m, genders, genders.lastModified);
           }
         },
       );
+
+  // Guards against re-adding columns left over from a previously interrupted migration.
+  Future<void> _addColumnIfMissing(
+    Migrator m,
+    TableInfo table,
+    GeneratedColumn column,
+  ) async {
+    final existingColumns = await customSelect(
+      'PRAGMA table_info(${table.actualTableName})',
+    ).get();
+    final hasColumn =
+        existingColumns.any((row) => row.data['name'] == column.name);
+    if (!hasColumn) {
+      await m.addColumn(table, column);
+    }
+  }
 
   static QueryExecutor _openConnection() => driftDatabase(name: 'app_database');
 }
