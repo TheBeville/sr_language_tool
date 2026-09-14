@@ -322,6 +322,73 @@ class DatabaseService {
     return (dB.delete(dB.genders)..where((g) => g.id.equals(id))).go();
   }
 
+  Future<List<Gender>> getAllGenders() async {
+    return await dB.select(dB.genders).get();
+  }
+
+  Future<void> ensureSyncIds() async {
+    final now = DateTime.now();
+    for (final l in await getAllLanguages()) {
+      if (l.syncId == null || l.lastModified == null) {
+        await (dB.update(dB.languages)..where((t) => t.id.equals(l.id))).write(
+          LanguagesCompanion(
+            syncId: Value(l.syncId ?? _uuid.v4()),
+            lastModified: Value(l.lastModified ?? now),
+          ),
+        );
+      }
+    }
+    for (final c in await getAllCategories()) {
+      if (c.syncId == null || c.lastModified == null) {
+        await (dB.update(dB.categories)..where((t) => t.id.equals(c.id))).write(
+          CategoriesCompanion(
+            syncId: Value(c.syncId ?? _uuid.v4()),
+            lastModified: Value(c.lastModified ?? now),
+          ),
+        );
+      }
+    }
+    for (final g in await getAllGenders()) {
+      if (g.syncId == null || g.lastModified == null) {
+        await (dB.update(dB.genders)..where((t) => t.id.equals(g.id))).write(
+          GendersCompanion(
+            syncId: Value(g.syncId ?? _uuid.v4()),
+            lastModified: Value(g.lastModified ?? now),
+          ),
+        );
+      }
+    }
+    for (final card in await getAllCards()) {
+      if (card.syncId == null || card.lastModified == null) {
+        await (dB.update(dB.cards)..where((t) => t.id.equals(card.id))).write(
+          CardsCompanion(
+            syncId: Value(card.syncId ?? _uuid.v4()),
+            lastModified: Value(card.lastModified ?? now),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<bool> isDefaultSeededOnly() async {
+    final cards = await getAllCards();
+    final langs = await getAllLanguages();
+    if (cards.length == 1 &&
+        cards.first.frontContent == 'Example Card' &&
+        langs.length == 1 &&
+        langs.first.language == 'Example Language') {
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> clearLocalRecords() async {
+    await dB.delete(dB.cards).go();
+    await dB.delete(dB.genders).go();
+    await dB.delete(dB.categories).go();
+    await dB.delete(dB.languages).go();
+  }
+
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ \\
   // @| CAUTION: DELETES DATABASE FILE |@ \\
   // @|  USE ONLY WHEN IT'S NECESSARY  |@ \\

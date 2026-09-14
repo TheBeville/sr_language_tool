@@ -19,17 +19,23 @@ class SettingsPage extends StatelessWidget {
       body: Center(
         child: BlocBuilder<AuthCubit, AuthState>(
           builder: (context, state) {
+            final user = switch (state) {
+              AuthAuthenticated(:final user) => user,
+              AuthSyncing(:final user) => user,
+              _ => null,
+            };
+
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (state is AuthAuthenticated) ...[
+                if (user != null) ...[
                   Text(
-                    state.user.email ?? '',
+                    user.email ?? '',
                     style: const TextStyle(fontSize: 16),
                   ),
-                  if (state.user.userMetadata?['username'] != null)
+                  if (user.userMetadata?['username'] != null)
                     Text(
-                      state.user.userMetadata!['username'] as String,
+                      user.userMetadata!['username'] as String,
                       style: const TextStyle(
                         fontSize: 13,
                         color: Colors.grey,
@@ -37,7 +43,9 @@ class SettingsPage extends StatelessWidget {
                     ),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed: () => context.read<AuthCubit>().signOut(),
+                    onPressed: state is AuthSyncing
+                        ? null
+                        : () => context.read<AuthCubit>().signOut(),
                     child: const Text(
                       'Sign Out',
                       style: TextStyle(color: Colors.red),

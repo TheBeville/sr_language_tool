@@ -10,6 +10,11 @@ class AuthInitial extends AuthState {}
 
 class AuthLoading extends AuthState {}
 
+class AuthSyncing extends AuthState {
+  final User user;
+  AuthSyncing(this.user);
+}
+
 class AuthAuthenticated extends AuthState {
   final User user;
   AuthAuthenticated(this.user);
@@ -43,6 +48,7 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthLoading());
     try {
       await _cloudService.logInWithEmail(email: email, password: password);
+      await syncNow();
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -60,6 +66,7 @@ class AuthCubit extends Cubit<AuthState> {
         password: password,
         username: username,
       );
+      await syncNow();
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -71,6 +78,25 @@ class AuthCubit extends Cubit<AuthState> {
       await Supabase.instance.client.auth.signOut();
     } catch (e) {
       emit(AuthError(e.toString()));
+    }
+  }
+
+  Future<bool> syncNow() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      emit(AuthUnauthenticated());
+      return false;
+    }
+
+    emit(AuthSyncing(user));
+    try {
+      await _cloudService.syncData();
+      emit(AuthAuthenticated(user));
+      return true;
+    } catch (e) {
+      emit(AuthError('Sync failed: $e'));
+      emit(AuthAuthenticated(user));
+      return false;
     }
   }
 
