@@ -11,7 +11,7 @@
 -- languages
 -- ------------------------------------------------------------------ --
 
-CREATE TABLE public.languages (
+CREATE TABLE IF NOT EXISTS public.languages (
   sync_id       UUID        PRIMARY KEY,
   id            BIGINT      NOT NULL,
   user_id       UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -21,14 +21,20 @@ CREATE TABLE public.languages (
 
 ALTER TABLE public.languages ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "users_own_languages" ON public.languages
-  FOR ALL USING (auth.uid() = user_id);
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'languages' AND policyname = 'users_own_languages'
+  ) THEN
+    CREATE POLICY "users_own_languages" ON public.languages
+      FOR ALL USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
 -- ------------------------------------------------------------------ --
 -- categories
 -- ------------------------------------------------------------------ --
 
-CREATE TABLE public.categories (
+CREATE TABLE IF NOT EXISTS public.categories (
   sync_id       UUID        PRIMARY KEY,
   id            BIGINT      NOT NULL,
   user_id       UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -38,14 +44,20 @@ CREATE TABLE public.categories (
 
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "users_own_categories" ON public.categories
-  FOR ALL USING (auth.uid() = user_id);
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'categories' AND policyname = 'users_own_categories'
+  ) THEN
+    CREATE POLICY "users_own_categories" ON public.categories
+      FOR ALL USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
 -- ------------------------------------------------------------------ --
 -- genders
 -- ------------------------------------------------------------------ --
 
-CREATE TABLE public.genders (
+CREATE TABLE IF NOT EXISTS public.genders (
   sync_id          UUID        PRIMARY KEY,
   id               BIGINT      NOT NULL,
   user_id          UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -56,14 +68,20 @@ CREATE TABLE public.genders (
 
 ALTER TABLE public.genders ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "users_own_genders" ON public.genders
-  FOR ALL USING (auth.uid() = user_id);
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'genders' AND policyname = 'users_own_genders'
+  ) THEN
+    CREATE POLICY "users_own_genders" ON public.genders
+      FOR ALL USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
 -- ------------------------------------------------------------------ --
 -- cards
 -- ------------------------------------------------------------------ --
 
-CREATE TABLE public.cards (
+CREATE TABLE IF NOT EXISTS public.cards (
   sync_id          UUID        PRIMARY KEY,
   id               BIGINT      NOT NULL,
   user_id          UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -82,14 +100,20 @@ CREATE TABLE public.cards (
 
 ALTER TABLE public.cards ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "users_own_cards" ON public.cards
-  FOR ALL USING (auth.uid() = user_id);
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'cards' AND policyname = 'users_own_cards'
+  ) THEN
+    CREATE POLICY "users_own_cards" ON public.cards
+      FOR ALL USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
 -- ------------------------------------------------------------------ --
 -- deleted_records (tombstones for synchronization)
 -- ------------------------------------------------------------------ --
 
-CREATE TABLE public.deleted_records (
+CREATE TABLE IF NOT EXISTS public.deleted_records (
   sync_id       UUID        PRIMARY KEY,
   user_id       UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   table_name    TEXT        NOT NULL,
@@ -98,5 +122,11 @@ CREATE TABLE public.deleted_records (
 
 ALTER TABLE public.deleted_records ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "users_own_deleted_records" ON public.deleted_records
-  FOR ALL USING (auth.uid() = user_id);
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'deleted_records' AND policyname = 'users_own_deleted_records'
+  ) THEN
+    CREATE POLICY "users_own_deleted_records" ON public.deleted_records
+      FOR ALL USING (auth.uid() = user_id);
+  END IF;
+END $$;

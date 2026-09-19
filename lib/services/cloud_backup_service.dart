@@ -114,31 +114,53 @@ class CloudBackupService {
       }
     }
 
-    // 0b. Download remote deletions and purge local records
+    // 0b. Download remote deletions and purge local records in topological order
+    // (cards and genders first, then categories and languages) within a transaction
+    // to prevent foreign key constraint violations.
     final remoteDeletionsRaw =
         await supabase.from('deleted_records').select().eq('user_id', userId);
     final remoteDeletions =
         List<Map<String, dynamic>>.from(remoteDeletionsRaw as List);
+    final cardsDeletions = <String>[];
+    final gendersDeletions = <String>[];
+    final categoriesDeletions = <String>[];
+    final languagesDeletions = <String>[];
+
     for (final remoteDel in remoteDeletions) {
       final syncId = remoteDel['sync_id'] as String;
       final tableName = remoteDel['table_name'] as String;
       if (tableName == 'cards') {
+        cardsDeletions.add(syncId);
+      } else if (tableName == 'genders') {
+        gendersDeletions.add(syncId);
+      } else if (tableName == 'categories') {
+        categoriesDeletions.add(syncId);
+      } else if (tableName == 'languages') {
+        languagesDeletions.add(syncId);
+      }
+    }
+
+    await appDb.transaction(() async {
+      for (final syncId in cardsDeletions) {
         await (appDb.delete(appDb.cards)..where((t) => t.syncId.equals(syncId)))
             .go();
-      } else if (tableName == 'genders') {
+      }
+      for (final syncId in gendersDeletions) {
         await (appDb.delete(appDb.genders)
               ..where((t) => t.syncId.equals(syncId)))
             .go();
-      } else if (tableName == 'categories') {
+      }
+      for (final syncId in categoriesDeletions) {
         await (appDb.delete(appDb.categories)
               ..where((t) => t.syncId.equals(syncId)))
             .go();
-      } else if (tableName == 'languages') {
+      }
+      for (final syncId in languagesDeletions) {
         await (appDb.delete(appDb.languages)
               ..where((t) => t.syncId.equals(syncId)))
             .go();
       }
-    }
+    });
 
     // ------------------------------------------------------------- //
     // 1. LANGUAGES SYNC
@@ -302,7 +324,31 @@ class CloudBackupService {
       }
     }
 
-    final freshLocalCats = await _dbService.getAllCategories();
+    var freshLocalCats = await _dbService.getAllCategories();
+    // If the account has no categories locally or remotely, ensure default categories are available
+    if (freshLocalCats.isEmpty) {
+      await _dbService.seedDefaultCategoriesOnly();
+      await _dbService.ensureSyncIds(userId);
+      freshLocalCats = await _dbService.getAllCategories();
+      // Upload seeded categories to remote
+      final seededCatsToInsert = [
+        for (final c in freshLocalCats)
+          {
+            'sync_id': c.syncId,
+            'id': c.id,
+            'user_id': userId,
+            'category': c.category,
+            'last_modified': c.lastModified!.toIso8601String(),
+          }
+      ];
+      if (seededCatsToInsert.isNotEmpty) {
+        await supabase.from('categories').upsert(
+              seededCatsToInsert,
+              onConflict: 'sync_id',
+            );
+      }
+    }
+
     final catIdBySyncId = {
       for (final c in freshLocalCats)
         if (c.syncId != null) c.syncId!: c.id,

@@ -232,12 +232,11 @@ class _HomeViewState extends State<HomeView> with RouteAware {
                                               MaterialButton(
                                                 child: const Text('Delete'),
                                                 onPressed: () async {
-                                                  setState(() {
-                                                    dBService.deleteLang(
-                                                      selectedLangID,
-                                                    );
-                                                  });
+                                                  await dBService.deleteLang(
+                                                    selectedLangID,
+                                                  );
                                                   if (context.mounted) {
+                                                    setState(() {});
                                                     Navigator.of(context).pop();
                                                   }
                                                 },
