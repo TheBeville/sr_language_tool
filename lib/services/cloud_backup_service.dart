@@ -62,8 +62,8 @@ class CloudBackupService {
       await _dbService.clearLocalRecords();
     }
 
-    // Ensure all local rows have a valid syncId and lastModified
-    await _dbService.ensureSyncIds();
+    // Ensure all local rows have a valid syncId and lastModified, scoped by userId
+    await _dbService.ensureSyncIds(userId);
 
     // ------------------------------------------------------------- //
     // 0. SYNCHRONIZE TOMBSTONES / DELETIONS

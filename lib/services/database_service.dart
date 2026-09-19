@@ -265,20 +265,25 @@ class DatabaseService {
     final lang = await (dB.select(dB.languages)..where((l) => l.id.equals(id)))
         .getSingleOrNull();
     if (lang != null && lang.syncId != null) {
-      // Also delete associated cards and genders tombstones
+      // Record tombstones and delete associated cards and genders locally
       final cards = await (dB.select(dB.cards)
             ..where((c) => c.language.equals(id)))
           .get();
       for (final card in cards) {
         if (card.syncId != null) await recordDeleted('cards', card.syncId!);
       }
+      await (dB.delete(dB.cards)..where((c) => c.language.equals(id))).go();
+
       final genders = await (dB.select(dB.genders)
             ..where((g) => g.language.equals(id)))
           .get();
       for (final gender in genders) {
-        if (gender.syncId != null)
+        if (gender.syncId != null) {
           await recordDeleted('genders', gender.syncId!);
+        }
       }
+      await (dB.delete(dB.genders)..where((g) => g.language.equals(id))).go();
+
       await recordDeleted('languages', lang.syncId!);
     }
     return (dB.delete(dB.languages)
@@ -327,6 +332,15 @@ class DatabaseService {
     final cat = await (dB.select(dB.categories)..where((c) => c.id.equals(id)))
         .getSingleOrNull();
     if (cat != null && cat.syncId != null) {
+      // Record tombstones and delete dependent cards locally
+      final cards = await (dB.select(dB.cards)
+            ..where((c) => c.category.equals(id)))
+          .get();
+      for (final card in cards) {
+        if (card.syncId != null) await recordDeleted('cards', card.syncId!);
+      }
+      await (dB.delete(dB.cards)..where((c) => c.category.equals(id))).go();
+
       await recordDeleted('categories', cat.syncId!);
     }
     return (dB.delete(dB.categories)
@@ -414,13 +428,14 @@ class DatabaseService {
         .go();
   }
 
-  Future<void> ensureSyncIds() async {
+  Future<void> ensureSyncIds([String? userId]) async {
     final now = DateTime.now();
+    final userPrefix = userId != null ? '$userId:' : '';
     for (final l in await getAllLanguages()) {
       if (l.syncId == null || l.lastModified == null) {
         final deterministicSyncId = l.syncId ??
             _uuid.v5(_namespaceMigration,
-                'language:${l.language.trim().toLowerCase()}');
+                '${userPrefix}language:${l.language.trim().toLowerCase()}');
         await (dB.update(dB.languages)..where((t) => t.id.equals(l.id))).write(
           LanguagesCompanion(
             syncId: Value(deterministicSyncId),
@@ -433,7 +448,7 @@ class DatabaseService {
       if (c.syncId == null || c.lastModified == null) {
         final deterministicSyncId = c.syncId ??
             _uuid.v5(_namespaceMigration,
-                'category:${c.category.trim().toLowerCase()}');
+                '${userPrefix}category:${c.category.trim().toLowerCase()}');
         await (dB.update(dB.categories)..where((t) => t.id.equals(c.id))).write(
           CategoriesCompanion(
             syncId: Value(deterministicSyncId),
@@ -452,7 +467,7 @@ class DatabaseService {
             g.language.toString();
         final deterministicSyncId = g.syncId ??
             _uuid.v5(_namespaceMigration,
-                'gender:$langKey:${g.gender.trim().toLowerCase()}');
+                '${userPrefix}gender:$langKey:${g.gender.trim().toLowerCase()}');
         await (dB.update(dB.genders)..where((t) => t.id.equals(g.id))).write(
           GendersCompanion(
             syncId: Value(deterministicSyncId),
@@ -465,7 +480,7 @@ class DatabaseService {
       if (card.syncId == null || card.lastModified == null) {
         final deterministicSyncId = card.syncId ??
             _uuid.v5(_namespaceMigration,
-                'card:${card.language}:${card.category}:${card.frontContent.trim()}:${card.revealContent.trim()}');
+                '${userPrefix}card:${card.language}:${card.category}:${card.frontContent.trim()}:${card.revealContent.trim()}');
         await (dB.update(dB.cards)..where((t) => t.id.equals(card.id))).write(
           CardsCompanion(
             syncId: Value(deterministicSyncId),
