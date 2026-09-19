@@ -48,6 +48,9 @@ class CloudBackupService {
     final userId = user.id;
     final appDb = _dbService.dB;
 
+    // Handle account switching so data from another user is not leaked/overwritten
+    await _dbService.handleAccountSwitch(userId);
+
     // Check if remote has data and local only has initial placeholder seed data
     final remoteLangsCheck = await supabase
         .from('languages')
@@ -153,12 +156,12 @@ class CloudBackupService {
       for (final r in remoteLangs) r['sync_id'] as String: r,
     };
 
-    // Upload new or updated local languages (batch upsert with last-write-wins check)
-    final langsToUpsert = <Map<String, dynamic>>[];
+    // Upload new or updated local languages (server-side last-write-wins guard)
+    final newLangsToInsert = <Map<String, dynamic>>[];
     for (final local in localLangs) {
       final remote = remoteLangBySyncId[local.syncId];
       if (remote == null) {
-        langsToUpsert.add({
+        newLangsToInsert.add({
           'sync_id': local.syncId,
           'id': local.id,
           'user_id': userId,
@@ -168,19 +171,22 @@ class CloudBackupService {
       } else {
         final remoteMod = DateTime.parse(remote['last_modified'] as String);
         if (local.lastModified!.isAfter(remoteMod)) {
-          langsToUpsert.add({
-            'sync_id': local.syncId,
-            'id': local.id,
-            'user_id': userId,
-            'language': local.language,
-            'last_modified': local.lastModified!.toIso8601String(),
-          });
+          // Use server-side lt guard to prevent overwriting if another client updated in the interim
+          await supabase
+              .from('languages')
+              .update({
+                'language': local.language,
+                'last_modified': local.lastModified!.toIso8601String(),
+              })
+              .eq('sync_id', local.syncId!)
+              .eq('user_id', userId)
+              .lt('last_modified', local.lastModified!.toIso8601String());
         }
       }
     }
-    if (langsToUpsert.isNotEmpty) {
+    if (newLangsToInsert.isNotEmpty) {
       await supabase.from('languages').upsert(
-            langsToUpsert,
+            newLangsToInsert,
             onConflict: 'sync_id',
           );
     }
@@ -238,11 +244,11 @@ class CloudBackupService {
       for (final r in remoteCats) r['sync_id'] as String: r,
     };
 
-    final catsToUpsert = <Map<String, dynamic>>[];
+    final newCatsToInsert = <Map<String, dynamic>>[];
     for (final local in localCats) {
       final remote = remoteCatBySyncId[local.syncId];
       if (remote == null) {
-        catsToUpsert.add({
+        newCatsToInsert.add({
           'sync_id': local.syncId,
           'id': local.id,
           'user_id': userId,
@@ -252,19 +258,21 @@ class CloudBackupService {
       } else {
         final remoteMod = DateTime.parse(remote['last_modified'] as String);
         if (local.lastModified!.isAfter(remoteMod)) {
-          catsToUpsert.add({
-            'sync_id': local.syncId,
-            'id': local.id,
-            'user_id': userId,
-            'category': local.category,
-            'last_modified': local.lastModified!.toIso8601String(),
-          });
+          await supabase
+              .from('categories')
+              .update({
+                'category': local.category,
+                'last_modified': local.lastModified!.toIso8601String(),
+              })
+              .eq('sync_id', local.syncId!)
+              .eq('user_id', userId)
+              .lt('last_modified', local.lastModified!.toIso8601String());
         }
       }
     }
-    if (catsToUpsert.isNotEmpty) {
+    if (newCatsToInsert.isNotEmpty) {
       await supabase.from('categories').upsert(
-            catsToUpsert,
+            newCatsToInsert,
             onConflict: 'sync_id',
           );
     }
@@ -321,14 +329,14 @@ class CloudBackupService {
       for (final r in remoteGenders) r['sync_id'] as String: r,
     };
 
-    final gendersToUpsert = <Map<String, dynamic>>[];
+    final newGendersToInsert = <Map<String, dynamic>>[];
     for (final local in localGenders) {
       final remote = remoteGenderBySyncId[local.syncId];
       final langSyncId = langSyncIdById[local.language];
       if (langSyncId == null) continue;
 
       if (remote == null) {
-        gendersToUpsert.add({
+        newGendersToInsert.add({
           'sync_id': local.syncId,
           'id': local.id,
           'user_id': userId,
@@ -339,20 +347,22 @@ class CloudBackupService {
       } else {
         final remoteMod = DateTime.parse(remote['last_modified'] as String);
         if (local.lastModified!.isAfter(remoteMod)) {
-          gendersToUpsert.add({
-            'sync_id': local.syncId,
-            'id': local.id,
-            'user_id': userId,
-            'language_sync_id': langSyncId,
-            'gender': local.gender,
-            'last_modified': local.lastModified!.toIso8601String(),
-          });
+          await supabase
+              .from('genders')
+              .update({
+                'gender': local.gender,
+                'language_sync_id': langSyncId,
+                'last_modified': local.lastModified!.toIso8601String(),
+              })
+              .eq('sync_id', local.syncId!)
+              .eq('user_id', userId)
+              .lt('last_modified', local.lastModified!.toIso8601String());
         }
       }
     }
-    if (gendersToUpsert.isNotEmpty) {
+    if (newGendersToInsert.isNotEmpty) {
       await supabase.from('genders').upsert(
-            gendersToUpsert,
+            newGendersToInsert,
             onConflict: 'sync_id',
           );
     }
@@ -402,7 +412,7 @@ class CloudBackupService {
       for (final r in remoteCards) r['sync_id'] as String: r,
     };
 
-    final cardsToUpsert = <Map<String, dynamic>>[];
+    final newCardsToInsert = <Map<String, dynamic>>[];
     for (final local in localCards) {
       final remote = remoteCardBySyncId[local.syncId];
       final langSyncId = langSyncIdById[local.language];
@@ -410,7 +420,7 @@ class CloudBackupService {
       if (langSyncId == null || catSyncId == null) continue;
 
       if (remote == null) {
-        cardsToUpsert.add({
+        newCardsToInsert.add({
           'sync_id': local.syncId,
           'id': local.id,
           'user_id': userId,
@@ -429,28 +439,30 @@ class CloudBackupService {
       } else {
         final remoteMod = DateTime.parse(remote['last_modified'] as String);
         if (local.lastModified!.isAfter(remoteMod)) {
-          cardsToUpsert.add({
-            'sync_id': local.syncId,
-            'id': local.id,
-            'user_id': userId,
-            'language_sync_id': langSyncId,
-            'category_sync_id': catSyncId,
-            'front_content': local.frontContent,
-            'reveal_content': local.revealContent,
-            'pronunciation': local.pronunciation,
-            'example_usage': local.exampleUsage,
-            'plural_form': local.pluralForm,
-            'gender': local.gender,
-            'last_review': local.lastReview.toIso8601String(),
-            'next_review_due': local.nextReviewDue.toIso8601String(),
-            'last_modified': local.lastModified!.toIso8601String(),
-          });
+          await supabase
+              .from('cards')
+              .update({
+                'language_sync_id': langSyncId,
+                'category_sync_id': catSyncId,
+                'front_content': local.frontContent,
+                'reveal_content': local.revealContent,
+                'pronunciation': local.pronunciation,
+                'example_usage': local.exampleUsage,
+                'plural_form': local.pluralForm,
+                'gender': local.gender,
+                'last_review': local.lastReview.toIso8601String(),
+                'next_review_due': local.nextReviewDue.toIso8601String(),
+                'last_modified': local.lastModified!.toIso8601String(),
+              })
+              .eq('sync_id', local.syncId!)
+              .eq('user_id', userId)
+              .lt('last_modified', local.lastModified!.toIso8601String());
         }
       }
     }
-    if (cardsToUpsert.isNotEmpty) {
+    if (newCardsToInsert.isNotEmpty) {
       await supabase.from('cards').upsert(
-            cardsToUpsert,
+            newCardsToInsert,
             onConflict: 'sync_id',
           );
     }

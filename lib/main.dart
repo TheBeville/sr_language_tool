@@ -20,7 +20,7 @@ void main() async {
     anonKey: dotenv.env['API_KEY'] ?? '',
   );
   setupLocator();
-  DatabaseService().initialiseDB();
+  await DatabaseService().initialiseDB();
   runApp(const MyApp());
 }
 

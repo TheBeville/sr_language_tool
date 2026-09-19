@@ -10,6 +10,7 @@ class DatabaseService {
   final AppDatabase dB = locator.get<AppDatabase>();
   static const _uuid = Uuid();
   static const _prefKeySeedUntouched = 'is_initial_seed_untouched';
+  static const _prefKeyLastSyncedUserId = 'last_synced_user_id';
 
   // Deterministic namespace UUID for migrating existing legacy rows to sync IDs
   static const _namespaceMigration = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
@@ -18,17 +19,17 @@ class DatabaseService {
   // @| INITIALISATION STUFF |@ \\
   // @@@@@@@@@@@@@@@@@@@@@@@@@@ \\
 
-  void initialiseDB() async {
+  Future<void> initialiseDB() async {
     final List<Card> cardlist = await getAllCards();
     if (cardlist.isEmpty) {
-      isEmptyFunctions();
+      await isEmptyFunctions();
     }
 
     // cardlist.isEmpty ? isEmptyFunctions() : print('database loaded');
   }
 
-  void isEmptyFunctions() async {
-    createLangCat('Example Language');
+  Future<void> isEmptyFunctions() async {
+    await createLangCat('Example Language');
 
     final List<String> defaultWordCats = [
       'Adj.',
@@ -43,10 +44,10 @@ class DatabaseService {
     ];
 
     for (String word in defaultWordCats) {
-      createCategory(word);
+      await createCategory(word);
     }
 
-    createCard(
+    await createCard(
       language: 'Example Language',
       category: 'Phrase',
       frontContent: 'Example Card',
@@ -478,22 +479,20 @@ class DatabaseService {
   Future<bool> isDefaultSeededOnly() async {
     final prefs = await SharedPreferences.getInstance();
     final isUntouched = prefs.getBool(_prefKeySeedUntouched);
-    if (isUntouched == true) {
-      return true;
-    }
-    if (isUntouched == false) {
-      return false;
-    }
+    // Explicitly check boolean flag: only disposable if confirmed untouched initial seed.
+    // Avoid heuristics that could delete legitimate user-created records.
+    return isUntouched == true;
+  }
 
-    final cards = await getAllCards();
-    final langs = await getAllLanguages();
-    if (cards.length == 1 &&
-        cards.first.frontContent == 'Example Card' &&
-        langs.length == 1 &&
-        langs.first.language == 'Example Language') {
-      return true;
+  Future<void> handleAccountSwitch(String currentUserId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastUserId = prefs.getString(_prefKeyLastSyncedUserId);
+    if (lastUserId != null && lastUserId != currentUserId) {
+      // Switched to a different user account - clear data belonging to previous account
+      await clearLocalRecords();
+      await prefs.setBool(_prefKeySeedUntouched, false);
     }
-    return false;
+    await prefs.setString(_prefKeyLastSyncedUserId, currentUserId);
   }
 
   Future<void> clearLocalRecords() async {
