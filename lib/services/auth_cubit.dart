@@ -61,12 +61,23 @@ class AuthCubit extends Cubit<AuthState> {
   }) async {
     emit(AuthLoading());
     try {
-      await _cloudService.signUpWithEmail(
+      // Check if user session was created directly or requires confirmation
+      final response = await _cloudService.signUpWithEmail(
         email: email,
         password: password,
         username: username,
       );
-      await syncNow();
+
+      if (response?.session == null) {
+        // If email confirmation is turned on in Supabase
+        emit(
+          AuthError(
+            'Please check your email to confirm your account before logging in.',
+          ),
+        );
+      } else {
+        await syncNow();
+      }
     } catch (e) {
       emit(AuthError(e.toString()));
     }

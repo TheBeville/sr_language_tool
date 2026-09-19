@@ -72,10 +72,10 @@ class CloudBackupService {
 
     final localLangBySyncId = {
       for (final l in localLangs)
-        if (l.syncId != null) l.syncId!: l
+        if (l.syncId != null) l.syncId!: l,
     };
     final remoteLangBySyncId = {
-      for (final r in remoteLangs) r['sync_id'] as String: r
+      for (final r in remoteLangs) r['sync_id'] as String: r,
     };
 
     // Upload new/updated local languages to Supabase
@@ -130,11 +130,11 @@ class CloudBackupService {
     final freshLocalLangs = await _dbService.getAllLanguages();
     final langIdBySyncId = {
       for (final l in freshLocalLangs)
-        if (l.syncId != null) l.syncId!: l.id
+        if (l.syncId != null) l.syncId!: l.id,
     };
     final langSyncIdById = {
       for (final l in freshLocalLangs)
-        if (l.syncId != null) l.id: l.syncId!
+        if (l.syncId != null) l.id: l.syncId!,
     };
 
     // ------------------------------------------------------------- //
@@ -147,10 +147,10 @@ class CloudBackupService {
 
     final localCatBySyncId = {
       for (final c in localCats)
-        if (c.syncId != null) c.syncId!: c
+        if (c.syncId != null) c.syncId!: c,
     };
     final remoteCatBySyncId = {
-      for (final r in remoteCats) r['sync_id'] as String: r
+      for (final r in remoteCats) r['sync_id'] as String: r,
     };
 
     for (final local in localCats) {
@@ -202,11 +202,11 @@ class CloudBackupService {
     final freshLocalCats = await _dbService.getAllCategories();
     final catIdBySyncId = {
       for (final c in freshLocalCats)
-        if (c.syncId != null) c.syncId!: c.id
+        if (c.syncId != null) c.syncId!: c.id,
     };
     final catSyncIdById = {
       for (final c in freshLocalCats)
-        if (c.syncId != null) c.id: c.syncId!
+        if (c.syncId != null) c.id: c.syncId!,
     };
 
     // ------------------------------------------------------------- //
@@ -220,10 +220,10 @@ class CloudBackupService {
 
     final localGenderBySyncId = {
       for (final g in localGenders)
-        if (g.syncId != null) g.syncId!: g
+        if (g.syncId != null) g.syncId!: g,
     };
     final remoteGenderBySyncId = {
-      for (final r in remoteGenders) r['sync_id'] as String: r
+      for (final r in remoteGenders) r['sync_id'] as String: r,
     };
 
     for (final local in localGenders) {
@@ -291,10 +291,10 @@ class CloudBackupService {
 
     final localCardBySyncId = {
       for (final c in localCards)
-        if (c.syncId != null) c.syncId!: c
+        if (c.syncId != null) c.syncId!: c,
     };
     final remoteCardBySyncId = {
-      for (final r in remoteCards) r['sync_id'] as String: r
+      for (final r in remoteCards) r['sync_id'] as String: r,
     };
 
     for (final local in localCards) {
