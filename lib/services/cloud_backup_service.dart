@@ -60,6 +60,7 @@ class CloudBackupService {
     final hasRemoteData = (remoteLangsCheck as List).isNotEmpty;
     if (hasRemoteData && await _dbService.isDefaultSeededOnly()) {
       await _dbService.clearLocalRecords();
+      await _dbService.markUserModified();
     }
 
     // Ensure all local rows have a valid syncId and lastModified, scoped by userId
