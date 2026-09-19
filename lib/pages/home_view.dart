@@ -59,15 +59,55 @@ class _HomeViewState extends State<HomeView> with RouteAware {
             style: appBarTitleStyling,
           ),
           centerTitle: true,
-          leading: BlocBuilder<AuthCubit, AuthState>(
+          leading: BlocConsumer<AuthCubit, AuthState>(
+            listener: (context, state) {
+              if (state is AuthError &&
+                  state.message.startsWith('Sync failed:')) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.red.shade700,
+                  ),
+                );
+              }
+            },
             builder: (context, state) {
-              if (state is! AuthAuthenticated) return const SizedBox.shrink();
+              if (state is! AuthAuthenticated && state is! AuthSyncing) {
+                return const SizedBox.shrink();
+              }
+
+              if (state is AuthSyncing) {
+                return const Padding(
+                  padding: EdgeInsets.all(12.0),
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: Colors.white,
+                    ),
+                  ),
+                );
+              }
+
               return Padding(
                 padding: const EdgeInsets.only(left: 5.0),
                 child: IconButton(
                   icon: const Icon(Icons.cloud_upload),
                   iconSize: 32.0,
-                  onPressed: () {},
+                  onPressed: () async {
+                    final success = await context.read<AuthCubit>().syncNow();
+                    if (context.mounted && success) {
+                      setState(() {});
+                      context.read<ReviewSessionCubit>().getDueCards();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Cloud sync complete'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
                 ),
               );
             },
@@ -192,12 +232,11 @@ class _HomeViewState extends State<HomeView> with RouteAware {
                                               MaterialButton(
                                                 child: const Text('Delete'),
                                                 onPressed: () async {
-                                                  setState(() {
-                                                    dBService.deleteLang(
-                                                      selectedLangID,
-                                                    );
-                                                  });
+                                                  await dBService.deleteLang(
+                                                    selectedLangID,
+                                                  );
                                                   if (context.mounted) {
+                                                    setState(() {});
                                                     Navigator.of(context).pop();
                                                   }
                                                 },

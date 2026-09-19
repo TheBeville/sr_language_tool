@@ -45,6 +45,7 @@ dependencies:
   flutter_dotenv: ^6.0.0
   supabase_flutter: ^2.10.3
   uuid: ^4.6.0
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:

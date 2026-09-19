@@ -10,6 +10,11 @@ class AuthInitial extends AuthState {}
 
 class AuthLoading extends AuthState {}
 
+class AuthSyncing extends AuthState {
+  final User user;
+  AuthSyncing(this.user);
+}
+
 class AuthAuthenticated extends AuthState {
   final User user;
   AuthAuthenticated(this.user);
@@ -43,6 +48,7 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthLoading());
     try {
       await _cloudService.logInWithEmail(email: email, password: password);
+      await syncNow();
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -55,11 +61,23 @@ class AuthCubit extends Cubit<AuthState> {
   }) async {
     emit(AuthLoading());
     try {
-      await _cloudService.signUpWithEmail(
+      // Check if user session was created directly or requires confirmation
+      final response = await _cloudService.signUpWithEmail(
         email: email,
         password: password,
         username: username,
       );
+
+      if (response?.session == null) {
+        // If email confirmation is turned on in Supabase
+        emit(
+          AuthError(
+            'Please check your email to confirm your account before logging in.',
+          ),
+        );
+      } else {
+        await syncNow();
+      }
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -71,6 +89,25 @@ class AuthCubit extends Cubit<AuthState> {
       await Supabase.instance.client.auth.signOut();
     } catch (e) {
       emit(AuthError(e.toString()));
+    }
+  }
+
+  Future<bool> syncNow() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      emit(AuthUnauthenticated());
+      return false;
+    }
+
+    emit(AuthSyncing(user));
+    try {
+      await _cloudService.syncData();
+      emit(AuthAuthenticated(user));
+      return true;
+    } catch (e) {
+      emit(AuthError('Sync failed: $e'));
+      emit(AuthAuthenticated(user));
+      return false;
     }
   }
 
