@@ -41,12 +41,19 @@ class Genders extends Table {
   DateTimeColumn get lastModified => dateTime().nullable()();
 }
 
-@DriftDatabase(tables: [Cards, Languages, Categories, Genders])
+class DeletedRecords extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get recordTable => text()();
+  TextColumn get syncId => text()();
+  DateTimeColumn get deletedAt => dateTime()();
+}
+
+@DriftDatabase(tables: [Cards, Languages, Categories, Genders, DeletedRecords])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -63,6 +70,9 @@ class AppDatabase extends _$AppDatabase {
             await _addColumnIfMissing(m, categories, categories.lastModified);
             await _addColumnIfMissing(m, genders, genders.syncId);
             await _addColumnIfMissing(m, genders, genders.lastModified);
+          }
+          if (from < 4) {
+            await m.createTable(deletedRecords);
           }
         },
       );

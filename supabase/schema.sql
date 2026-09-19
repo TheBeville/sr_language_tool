@@ -84,3 +84,19 @@ ALTER TABLE public.cards ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "users_own_cards" ON public.cards
   FOR ALL USING (auth.uid() = user_id);
+
+-- ------------------------------------------------------------------ --
+-- deleted_records (tombstones for synchronization)
+-- ------------------------------------------------------------------ --
+
+CREATE TABLE public.deleted_records (
+  sync_id       UUID        PRIMARY KEY,
+  user_id       UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  table_name    TEXT        NOT NULL,
+  deleted_at    TIMESTAMPTZ NOT NULL
+);
+
+ALTER TABLE public.deleted_records ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "users_own_deleted_records" ON public.deleted_records
+  FOR ALL USING (auth.uid() = user_id);

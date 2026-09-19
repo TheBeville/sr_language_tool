@@ -1501,6 +1501,269 @@ class GendersCompanion extends UpdateCompanion<Gender> {
   }
 }
 
+class $DeletedRecordsTable extends DeletedRecords
+    with TableInfo<$DeletedRecordsTable, DeletedRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DeletedRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _recordTableMeta =
+      const VerificationMeta('recordTable');
+  @override
+  late final GeneratedColumn<String> recordTable = GeneratedColumn<String>(
+      'record_table', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _syncIdMeta = const VerificationMeta('syncId');
+  @override
+  late final GeneratedColumn<String> syncId = GeneratedColumn<String>(
+      'sync_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, recordTable, syncId, deletedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'deleted_records';
+  @override
+  VerificationContext validateIntegrity(Insertable<DeletedRecord> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('record_table')) {
+      context.handle(
+          _recordTableMeta,
+          recordTable.isAcceptableOrUnknown(
+              data['record_table']!, _recordTableMeta));
+    } else if (isInserting) {
+      context.missing(_recordTableMeta);
+    }
+    if (data.containsKey('sync_id')) {
+      context.handle(_syncIdMeta,
+          syncId.isAcceptableOrUnknown(data['sync_id']!, _syncIdMeta));
+    } else if (isInserting) {
+      context.missing(_syncIdMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    } else if (isInserting) {
+      context.missing(_deletedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DeletedRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DeletedRecord(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      recordTable: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}record_table'])!,
+      syncId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sync_id'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at'])!,
+    );
+  }
+
+  @override
+  $DeletedRecordsTable createAlias(String alias) {
+    return $DeletedRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class DeletedRecord extends DataClass implements Insertable<DeletedRecord> {
+  final int id;
+  final String recordTable;
+  final String syncId;
+  final DateTime deletedAt;
+  const DeletedRecord(
+      {required this.id,
+      required this.recordTable,
+      required this.syncId,
+      required this.deletedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['record_table'] = Variable<String>(recordTable);
+    map['sync_id'] = Variable<String>(syncId);
+    map['deleted_at'] = Variable<DateTime>(deletedAt);
+    return map;
+  }
+
+  DeletedRecordsCompanion toCompanion(bool nullToAbsent) {
+    return DeletedRecordsCompanion(
+      id: Value(id),
+      recordTable: Value(recordTable),
+      syncId: Value(syncId),
+      deletedAt: Value(deletedAt),
+    );
+  }
+
+  factory DeletedRecord.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DeletedRecord(
+      id: serializer.fromJson<int>(json['id']),
+      recordTable: serializer.fromJson<String>(json['recordTable']),
+      syncId: serializer.fromJson<String>(json['syncId']),
+      deletedAt: serializer.fromJson<DateTime>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'recordTable': serializer.toJson<String>(recordTable),
+      'syncId': serializer.toJson<String>(syncId),
+      'deletedAt': serializer.toJson<DateTime>(deletedAt),
+    };
+  }
+
+  DeletedRecord copyWith(
+          {int? id,
+          String? recordTable,
+          String? syncId,
+          DateTime? deletedAt}) =>
+      DeletedRecord(
+        id: id ?? this.id,
+        recordTable: recordTable ?? this.recordTable,
+        syncId: syncId ?? this.syncId,
+        deletedAt: deletedAt ?? this.deletedAt,
+      );
+  DeletedRecord copyWithCompanion(DeletedRecordsCompanion data) {
+    return DeletedRecord(
+      id: data.id.present ? data.id.value : this.id,
+      recordTable:
+          data.recordTable.present ? data.recordTable.value : this.recordTable,
+      syncId: data.syncId.present ? data.syncId.value : this.syncId,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeletedRecord(')
+          ..write('id: $id, ')
+          ..write('recordTable: $recordTable, ')
+          ..write('syncId: $syncId, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, recordTable, syncId, deletedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DeletedRecord &&
+          other.id == this.id &&
+          other.recordTable == this.recordTable &&
+          other.syncId == this.syncId &&
+          other.deletedAt == this.deletedAt);
+}
+
+class DeletedRecordsCompanion extends UpdateCompanion<DeletedRecord> {
+  final Value<int> id;
+  final Value<String> recordTable;
+  final Value<String> syncId;
+  final Value<DateTime> deletedAt;
+  const DeletedRecordsCompanion({
+    this.id = const Value.absent(),
+    this.recordTable = const Value.absent(),
+    this.syncId = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+  });
+  DeletedRecordsCompanion.insert({
+    this.id = const Value.absent(),
+    required String recordTable,
+    required String syncId,
+    required DateTime deletedAt,
+  })  : recordTable = Value(recordTable),
+        syncId = Value(syncId),
+        deletedAt = Value(deletedAt);
+  static Insertable<DeletedRecord> custom({
+    Expression<int>? id,
+    Expression<String>? recordTable,
+    Expression<String>? syncId,
+    Expression<DateTime>? deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (recordTable != null) 'record_table': recordTable,
+      if (syncId != null) 'sync_id': syncId,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+    });
+  }
+
+  DeletedRecordsCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? recordTable,
+      Value<String>? syncId,
+      Value<DateTime>? deletedAt}) {
+    return DeletedRecordsCompanion(
+      id: id ?? this.id,
+      recordTable: recordTable ?? this.recordTable,
+      syncId: syncId ?? this.syncId,
+      deletedAt: deletedAt ?? this.deletedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (recordTable.present) {
+      map['record_table'] = Variable<String>(recordTable.value);
+    }
+    if (syncId.present) {
+      map['sync_id'] = Variable<String>(syncId.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeletedRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('recordTable: $recordTable, ')
+          ..write('syncId: $syncId, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1508,12 +1771,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $CardsTable cards = $CardsTable(this);
   late final $GendersTable genders = $GendersTable(this);
+  late final $DeletedRecordsTable deletedRecords = $DeletedRecordsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [languages, categories, cards, genders];
+      [languages, categories, cards, genders, deletedRecords];
 }
 
 typedef $$LanguagesTableCreateCompanionBuilder = LanguagesCompanion Function({
@@ -1536,7 +1800,7 @@ final class $$LanguagesTableReferences
   static MultiTypedResultKey<$CardsTable, List<Card>> _cardsRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.cards,
-          aliasName: $_aliasNameGenerator(db.languages.id, db.cards.language));
+          aliasName: 'languages__id__cards__language');
 
   $$CardsTableProcessedTableManager get cardsRefs {
     final manager = $$CardsTableTableManager($_db, $_db.cards)
@@ -1550,8 +1814,7 @@ final class $$LanguagesTableReferences
   static MultiTypedResultKey<$GendersTable, List<Gender>> _gendersRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.genders,
-          aliasName:
-              $_aliasNameGenerator(db.languages.id, db.genders.language));
+          aliasName: 'languages__id__genders__language');
 
   $$GendersTableProcessedTableManager get gendersRefs {
     final manager = $$GendersTableTableManager($_db, $_db.genders)
@@ -1762,7 +2025,7 @@ class $$LanguagesTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$LanguagesTable, Language>(table),
                     $$LanguagesTableReferences(db, table, e)
                   ))
               .toList(),
@@ -1839,7 +2102,7 @@ final class $$CategoriesTableReferences
   static MultiTypedResultKey<$CardsTable, List<Card>> _cardsRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.cards,
-          aliasName: $_aliasNameGenerator(db.categories.id, db.cards.category));
+          aliasName: 'categories__id__cards__category');
 
   $$CardsTableProcessedTableManager get cardsRefs {
     final manager = $$CardsTableTableManager($_db, $_db.cards)
@@ -2008,7 +2271,7 @@ class $$CategoriesTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$CategoriesTable, Category>(table),
                     $$CategoriesTableReferences(db, table, e)
                   ))
               .toList(),
@@ -2085,8 +2348,8 @@ final class $$CardsTableReferences
     extends BaseReferences<_$AppDatabase, $CardsTable, Card> {
   $$CardsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $LanguagesTable _languageTable(_$AppDatabase db) => db.languages
-      .createAlias($_aliasNameGenerator(db.cards.language, db.languages.id));
+  static $LanguagesTable _languageTable(_$AppDatabase db) =>
+      db.languages.createAlias('cards__language__languages__id');
 
   $$LanguagesTableProcessedTableManager get language {
     final $_column = $_itemColumn<int>('language')!;
@@ -2099,8 +2362,8 @@ final class $$CardsTableReferences
         manager.$state.copyWith(prefetchedData: [item]));
   }
 
-  static $CategoriesTable _categoryTable(_$AppDatabase db) => db.categories
-      .createAlias($_aliasNameGenerator(db.cards.category, db.categories.id));
+  static $CategoriesTable _categoryTable(_$AppDatabase db) =>
+      db.categories.createAlias('cards__category__categories__id');
 
   $$CategoriesTableProcessedTableManager get category {
     final $_column = $_itemColumn<int>('category')!;
@@ -2451,8 +2714,10 @@ class $$CardsTableTableManager extends RootTableManager<
             lastModified: lastModified,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$CardsTableReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$CardsTable, Card>(table),
+                    $$CardsTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: ({language = false, category = false}) {
             return PrefetchHooks(
@@ -2531,8 +2796,8 @@ final class $$GendersTableReferences
     extends BaseReferences<_$AppDatabase, $GendersTable, Gender> {
   $$GendersTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $LanguagesTable _languageTable(_$AppDatabase db) => db.languages
-      .createAlias($_aliasNameGenerator(db.genders.language, db.languages.id));
+  static $LanguagesTable _languageTable(_$AppDatabase db) =>
+      db.languages.createAlias('genders__language__languages__id');
 
   $$LanguagesTableProcessedTableManager get language {
     final $_column = $_itemColumn<int>('language')!;
@@ -2724,8 +2989,10 @@ class $$GendersTableTableManager extends RootTableManager<
             lastModified: lastModified,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$GendersTableReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$GendersTable, Gender>(table),
+                    $$GendersTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: ({language = false}) {
             return PrefetchHooks(
@@ -2777,6 +3044,163 @@ typedef $$GendersTableProcessedTableManager = ProcessedTableManager<
     (Gender, $$GendersTableReferences),
     Gender,
     PrefetchHooks Function({bool language})>;
+typedef $$DeletedRecordsTableCreateCompanionBuilder = DeletedRecordsCompanion
+    Function({
+  Value<int> id,
+  required String recordTable,
+  required String syncId,
+  required DateTime deletedAt,
+});
+typedef $$DeletedRecordsTableUpdateCompanionBuilder = DeletedRecordsCompanion
+    Function({
+  Value<int> id,
+  Value<String> recordTable,
+  Value<String> syncId,
+  Value<DateTime> deletedAt,
+});
+
+class $$DeletedRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $DeletedRecordsTable> {
+  $$DeletedRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get recordTable => $composableBuilder(
+      column: $table.recordTable, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get syncId => $composableBuilder(
+      column: $table.syncId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$DeletedRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DeletedRecordsTable> {
+  $$DeletedRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get recordTable => $composableBuilder(
+      column: $table.recordTable, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get syncId => $composableBuilder(
+      column: $table.syncId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$DeletedRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DeletedRecordsTable> {
+  $$DeletedRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get recordTable => $composableBuilder(
+      column: $table.recordTable, builder: (column) => column);
+
+  GeneratedColumn<String> get syncId =>
+      $composableBuilder(column: $table.syncId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$DeletedRecordsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DeletedRecordsTable,
+    DeletedRecord,
+    $$DeletedRecordsTableFilterComposer,
+    $$DeletedRecordsTableOrderingComposer,
+    $$DeletedRecordsTableAnnotationComposer,
+    $$DeletedRecordsTableCreateCompanionBuilder,
+    $$DeletedRecordsTableUpdateCompanionBuilder,
+    (
+      DeletedRecord,
+      BaseReferences<_$AppDatabase, $DeletedRecordsTable, DeletedRecord>
+    ),
+    DeletedRecord,
+    PrefetchHooks Function()> {
+  $$DeletedRecordsTableTableManager(
+      _$AppDatabase db, $DeletedRecordsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DeletedRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DeletedRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DeletedRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> recordTable = const Value.absent(),
+            Value<String> syncId = const Value.absent(),
+            Value<DateTime> deletedAt = const Value.absent(),
+          }) =>
+              DeletedRecordsCompanion(
+            id: id,
+            recordTable: recordTable,
+            syncId: syncId,
+            deletedAt: deletedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String recordTable,
+            required String syncId,
+            required DateTime deletedAt,
+          }) =>
+              DeletedRecordsCompanion.insert(
+            id: id,
+            recordTable: recordTable,
+            syncId: syncId,
+            deletedAt: deletedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$DeletedRecordsTable, DeletedRecord>(table),
+                    BaseReferences<_$AppDatabase, $DeletedRecordsTable,
+                        DeletedRecord>(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DeletedRecordsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $DeletedRecordsTable,
+    DeletedRecord,
+    $$DeletedRecordsTableFilterComposer,
+    $$DeletedRecordsTableOrderingComposer,
+    $$DeletedRecordsTableAnnotationComposer,
+    $$DeletedRecordsTableCreateCompanionBuilder,
+    $$DeletedRecordsTableUpdateCompanionBuilder,
+    (
+      DeletedRecord,
+      BaseReferences<_$AppDatabase, $DeletedRecordsTable, DeletedRecord>
+    ),
+    DeletedRecord,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2789,4 +3213,6 @@ class $AppDatabaseManager {
       $$CardsTableTableManager(_db, _db.cards);
   $$GendersTableTableManager get genders =>
       $$GendersTableTableManager(_db, _db.genders);
+  $$DeletedRecordsTableTableManager get deletedRecords =>
+      $$DeletedRecordsTableTableManager(_db, _db.deletedRecords);
 }
