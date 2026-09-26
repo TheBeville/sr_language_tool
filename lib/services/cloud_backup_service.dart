@@ -79,7 +79,7 @@ class CloudBackupService {
             'user_id': userId,
             'table_name': d.recordTable,
             'deleted_at': d.deletedAt.toIso8601String(),
-          }
+          },
       ];
       await supabase.from('deleted_records').upsert(
             deletionPayloads,
@@ -340,7 +340,7 @@ class CloudBackupService {
             'user_id': userId,
             'category': c.category,
             'last_modified': c.lastModified!.toIso8601String(),
-          }
+          },
       ];
       if (seededCatsToInsert.isNotEmpty) {
         await supabase.from('categories').upsert(

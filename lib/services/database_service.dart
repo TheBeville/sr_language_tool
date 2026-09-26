@@ -434,8 +434,10 @@ class DatabaseService {
     for (final l in await getAllLanguages()) {
       if (l.syncId == null || l.lastModified == null) {
         final deterministicSyncId = l.syncId ??
-            _uuid.v5(_namespaceMigration,
-                '${userPrefix}language:${l.id}:${l.language.trim().toLowerCase()}');
+            _uuid.v5(
+              _namespaceMigration,
+              '${userPrefix}language:${l.id}:${l.language.trim().toLowerCase()}',
+            );
         await (dB.update(dB.languages)..where((t) => t.id.equals(l.id))).write(
           LanguagesCompanion(
             syncId: Value(deterministicSyncId),
@@ -447,8 +449,10 @@ class DatabaseService {
     for (final c in await getAllCategories()) {
       if (c.syncId == null || c.lastModified == null) {
         final deterministicSyncId = c.syncId ??
-            _uuid.v5(_namespaceMigration,
-                '${userPrefix}category:${c.id}:${c.category.trim().toLowerCase()}');
+            _uuid.v5(
+              _namespaceMigration,
+              '${userPrefix}category:${c.id}:${c.category.trim().toLowerCase()}',
+            );
         await (dB.update(dB.categories)..where((t) => t.id.equals(c.id))).write(
           CategoriesCompanion(
             syncId: Value(deterministicSyncId),
@@ -466,8 +470,10 @@ class DatabaseService {
             lang?.language.trim().toLowerCase() ??
             g.language.toString();
         final deterministicSyncId = g.syncId ??
-            _uuid.v5(_namespaceMigration,
-                '${userPrefix}gender:${g.id}:$langKey:${g.gender.trim().toLowerCase()}');
+            _uuid.v5(
+              _namespaceMigration,
+              '${userPrefix}gender:${g.id}:$langKey:${g.gender.trim().toLowerCase()}',
+            );
         await (dB.update(dB.genders)..where((t) => t.id.equals(g.id))).write(
           GendersCompanion(
             syncId: Value(deterministicSyncId),
@@ -479,8 +485,10 @@ class DatabaseService {
     for (final card in await getAllCards()) {
       if (card.syncId == null || card.lastModified == null) {
         final deterministicSyncId = card.syncId ??
-            _uuid.v5(_namespaceMigration,
-                '${userPrefix}card:${card.id}:${card.language}:${card.category}:${card.frontContent.trim()}:${card.revealContent.trim()}');
+            _uuid.v5(
+              _namespaceMigration,
+              '${userPrefix}card:${card.id}:${card.language}:${card.category}:${card.frontContent.trim()}:${card.revealContent.trim()}',
+            );
         await (dB.update(dB.cards)..where((t) => t.id.equals(card.id))).write(
           CardsCompanion(
             syncId: Value(deterministicSyncId),

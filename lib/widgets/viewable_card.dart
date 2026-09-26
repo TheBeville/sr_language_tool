@@ -69,9 +69,12 @@ class _ViewableCardState extends State<ViewableCard> {
             ),
           ),
           const SizedBox(height: 15),
-          Text(
-            widget.card.revealContent,
-            style: const TextStyle(fontSize: 30),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(25.0, 0, 25.0, 12.0),
+            child: Text(
+              widget.card.revealContent,
+              style: const TextStyle(fontSize: 30, height: 1.0),
+            ),
           ),
           widget.card.pluralForm == null
               ? const SizedBox()
