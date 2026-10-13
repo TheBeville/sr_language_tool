@@ -40,6 +40,6 @@ when the card will next be marked for review again.
 
 ## Cloud Sync Update
 Cloud storage and sync, to allow for use across multiple devices with one account. Local storage will still
-be the default storage method, but this will allow for migrating data to other devices, as well as sharing 
+be the default storage method, but this allows for migrating data to other devices, as well as sharing 
 saved cards across devices. Confirmed as working and pulled into main on 2026-09-19, and the data from my
-old phone successfully migrated to my new device with no hiccups!
+old phone successfully migrated to my new device with no hiccups! 
