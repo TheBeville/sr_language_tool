@@ -35,8 +35,15 @@ class Categories extends Table {
 
 class Genders extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get language => integer().references(Languages, #id)();
   TextColumn get gender => text()();
+  TextColumn get syncId => text().nullable()();
+  DateTimeColumn get lastModified => dateTime().nullable()();
+}
+
+class LanguageGenders extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get language => integer().references(Languages, #id)();
+  IntColumn get gender => integer().references(Genders, #id)();
   TextColumn get syncId => text().nullable()();
   DateTimeColumn get lastModified => dateTime().nullable()();
 }
@@ -48,12 +55,15 @@ class DeletedRecords extends Table {
   DateTimeColumn get deletedAt => dateTime()();
 }
 
-@DriftDatabase(tables: [Cards, Languages, Categories, Genders, DeletedRecords])
+@DriftDatabase(
+  tables: [Cards, Languages, Categories, Genders, LanguageGenders, DeletedRecords],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
+  AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -73,6 +83,78 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 4) {
             await m.createTable(deletedRecords);
+          }
+          if (from < 5) {
+            await m.createTable(languageGenders);
+
+            final existingGenderCols = await customSelect(
+              'PRAGMA table_info(genders)',
+            ).get();
+            final hasLangCol = existingGenderCols
+                .any((row) => row.data['name'] == 'language');
+
+            if (hasLangCol) {
+              final oldRows = await customSelect(
+                'SELECT id, language, gender, sync_id, last_modified FROM genders',
+              ).get();
+
+              final canonicalGenders = <String, Map<String, dynamic>>{};
+              final rowIdToCanonicalId = <int, int>{};
+
+              for (final row in oldRows) {
+                final id = row.data['id'] as int;
+                final genderText = (row.data['gender'] as String).trim();
+                final key = genderText.toLowerCase();
+
+                if (!canonicalGenders.containsKey(key)) {
+                  canonicalGenders[key] = {
+                    'id': id,
+                    'gender': genderText,
+                    'sync_id': row.data['sync_id'],
+                    'last_modified': row.data['last_modified'],
+                  };
+                  rowIdToCanonicalId[id] = id;
+                } else {
+                  rowIdToCanonicalId[id] = canonicalGenders[key]!['id'] as int;
+                }
+              }
+
+              await customStatement('DROP TABLE genders');
+              await m.createTable(genders);
+
+              for (final entry in canonicalGenders.values) {
+                await customStatement(
+                  'INSERT INTO genders (id, gender, sync_id, last_modified) VALUES (?, ?, ?, ?)',
+                  [
+                    entry['id'],
+                    entry['gender'],
+                    entry['sync_id'],
+                    entry['last_modified'],
+                  ],
+                );
+              }
+
+              final seenPairs = <String>{};
+              for (final row in oldRows) {
+                final langId = row.data['language'] as int;
+                final oldGenderId = row.data['id'] as int;
+                final canonicalGenderId = rowIdToCanonicalId[oldGenderId]!;
+                final pairKey = '$langId:$canonicalGenderId';
+
+                if (!seenPairs.contains(pairKey)) {
+                  seenPairs.add(pairKey);
+                  await customStatement(
+                    'INSERT INTO language_genders (language, gender, last_modified) VALUES (?, ?, ?)',
+                    [
+                      langId,
+                      canonicalGenderId,
+                      row.data['last_modified'] ??
+                          DateTime.now().toIso8601String(),
+                    ],
+                  );
+                }
+              }
+            }
           }
         },
       );

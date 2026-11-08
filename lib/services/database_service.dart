@@ -265,7 +265,7 @@ class DatabaseService {
     final lang = await (dB.select(dB.languages)..where((l) => l.id.equals(id)))
         .getSingleOrNull();
     if (lang != null && lang.syncId != null) {
-      // Record tombstones and delete associated cards and genders locally
+      // Record tombstones and delete associated cards and language_genders locally
       final cards = await (dB.select(dB.cards)
             ..where((c) => c.language.equals(id)))
           .get();
@@ -274,15 +274,16 @@ class DatabaseService {
       }
       await (dB.delete(dB.cards)..where((c) => c.language.equals(id))).go();
 
-      final genders = await (dB.select(dB.genders)
+      final languageGenders = await (dB.select(dB.languageGenders)
             ..where((g) => g.language.equals(id)))
           .get();
-      for (final gender in genders) {
-        if (gender.syncId != null) {
-          await recordDeleted('genders', gender.syncId!);
+      for (final lg in languageGenders) {
+        if (lg.syncId != null) {
+          await recordDeleted('language_genders', lg.syncId!);
         }
       }
-      await (dB.delete(dB.genders)..where((g) => g.language.equals(id))).go();
+      await (dB.delete(dB.languageGenders)..where((g) => g.language.equals(id)))
+          .go();
 
       await recordDeleted('languages', lang.syncId!);
     }
@@ -352,22 +353,71 @@ class DatabaseService {
   // @|     GENDER STUFF     |@ \\
   // @@@@@@@@@@@@@@@@@@@@@@@@@ \\
 
-  Future<void> replaceGendersForLang(int langId, List<String> genders) async {
-    await markUserModified();
-    final existingGenders = await (dB.select(dB.genders)
-          ..where((g) => g.language.equals(langId)))
-        .get();
-    for (final oldG in existingGenders) {
-      if (oldG.syncId != null) {
-        await recordDeleted('genders', oldG.syncId!);
-      }
+  Future<List<Gender>> getGendersOfLang(String language) async {
+    final int langID = await getLangID(language);
+    return getGendersOfLangId(langID);
+  }
+
+  Future<List<Gender>> getGendersOfLangId(int langId) async {
+    final query = dB.select(dB.languageGenders).join([
+      innerJoin(
+        dB.genders,
+        dB.genders.id.equalsExp(dB.languageGenders.gender),
+      ),
+    ])..where(dB.languageGenders.language.equals(langId));
+
+    final rows = await query.get();
+    return rows.map((r) => r.readTable(dB.genders)).toList();
+  }
+
+  Future<List<Gender>> getAllGenders() async {
+    return await dB.select(dB.genders).get();
+  }
+
+  Future<List<LanguageGender>> getAllLanguageGenders() async {
+    return await dB.select(dB.languageGenders).get();
+  }
+
+  Future<Gender> getOrCreateGender(String gender) async {
+    final trimmed = gender.trim();
+    final existing = await (dB.select(dB.genders)
+          ..where((g) => g.gender.lower().equals(trimmed.toLowerCase())))
+        .getSingleOrNull();
+    if (existing != null) {
+      return existing;
     }
-    await (dB.delete(dB.genders)..where((g) => g.language.equals(langId))).go();
-    for (final gender in genders) {
-      await dB.into(dB.genders).insert(
-            GendersCompanion.insert(
+    await markUserModified();
+    final id = await dB.into(dB.genders).insert(
+          GendersCompanion.insert(
+            gender: trimmed,
+            syncId: Value(_uuid.v4()),
+            lastModified: Value(DateTime.now()),
+          ),
+        );
+    return (await (dB.select(dB.genders)..where((g) => g.id.equals(id)))
+        .getSingle());
+  }
+
+  Future<Gender> createGender(String language, String gender) async {
+    await markUserModified();
+    final int langID = await getLangID(language);
+    final g = await getOrCreateGender(gender);
+    await addGenderToLang(langID, g.id);
+    return g;
+  }
+
+  Future<void> addGenderToLang(int langId, int genderId) async {
+    final existing = await (dB.select(dB.languageGenders)
+          ..where(
+            (lg) => lg.language.equals(langId) & lg.gender.equals(genderId),
+          ))
+        .getSingleOrNull();
+    if (existing == null) {
+      await markUserModified();
+      await dB.into(dB.languageGenders).insert(
+            LanguageGendersCompanion.insert(
               language: langId,
-              gender: gender,
+              gender: genderId,
               syncId: Value(_uuid.v4()),
               lastModified: Value(DateTime.now()),
             ),
@@ -375,24 +425,49 @@ class DatabaseService {
     }
   }
 
-  Future<List<Gender>> getGendersOfLang(String language) async {
-    final int langID = await getLangID(language);
-    return await (dB.select(dB.genders)
-          ..where((g) => g.language.equals(langID)))
+  Future<void> setGendersForLang(int langId, Iterable<int> selectedGenderIds) async {
+    await markUserModified();
+    final targetIdSet = selectedGenderIds.toSet();
+    final existingLinks = await (dB.select(dB.languageGenders)
+          ..where((lg) => lg.language.equals(langId)))
         .get();
+
+    final existingGenderIdSet = existingLinks.map((lg) => lg.gender).toSet();
+
+    for (final oldLink in existingLinks) {
+      if (!targetIdSet.contains(oldLink.gender)) {
+        if (oldLink.syncId != null) {
+          await recordDeleted('language_genders', oldLink.syncId!);
+        }
+        await (dB.delete(dB.languageGenders)
+              ..where((lg) => lg.id.equals(oldLink.id)))
+            .go();
+      }
+    }
+
+    for (final gId in targetIdSet) {
+      if (!existingGenderIdSet.contains(gId)) {
+        await dB.into(dB.languageGenders).insert(
+              LanguageGendersCompanion.insert(
+                language: langId,
+                gender: gId,
+                syncId: Value(_uuid.v4()),
+                lastModified: Value(DateTime.now()),
+              ),
+            );
+      }
+    }
   }
 
-  Future<void> createGender(String language, String gender) async {
-    await markUserModified();
-    final int langID = await getLangID(language);
-    await dB.into(dB.genders).insert(
-          GendersCompanion.insert(
-            language: langID,
-            gender: gender,
-            syncId: Value(_uuid.v4()),
-            lastModified: Value(DateTime.now()),
-          ),
-        );
+  Future<void> replaceGendersForLang(int langId, List<String> genders) async {
+    final genderIds = <int>{};
+    for (final name in genders) {
+      if (name.trim().isNotEmpty) {
+        final g = await getOrCreateGender(name.trim());
+        genderIds.add(g.id);
+      }
+    }
+    await setGendersForLang(langId, genderIds);
   }
 
   Future<int> deleteGender(int id) async {
@@ -400,13 +475,21 @@ class DatabaseService {
     final g = await (dB.select(dB.genders)..where((row) => row.id.equals(id)))
         .getSingleOrNull();
     if (g != null && g.syncId != null) {
+      final links = await (dB.select(dB.languageGenders)
+            ..where((lg) => lg.gender.equals(id)))
+          .get();
+      for (final link in links) {
+        if (link.syncId != null) {
+          await recordDeleted('language_genders', link.syncId!);
+        }
+      }
+      await (dB.delete(dB.languageGenders)
+            ..where((lg) => lg.gender.equals(id)))
+          .go();
+
       await recordDeleted('genders', g.syncId!);
     }
     return (dB.delete(dB.genders)..where((g) => g.id.equals(id))).go();
-  }
-
-  Future<List<Gender>> getAllGenders() async {
-    return await dB.select(dB.genders).get();
   }
 
   Future<void> recordDeleted(String tableName, String syncId) async {
@@ -463,21 +546,39 @@ class DatabaseService {
     }
     for (final g in await getAllGenders()) {
       if (g.syncId == null || g.lastModified == null) {
-        final lang = await (dB.select(dB.languages)
-              ..where((l) => l.id.equals(g.language)))
-            .getSingleOrNull();
-        final langKey = lang?.syncId ??
-            lang?.language.trim().toLowerCase() ??
-            g.language.toString();
         final deterministicSyncId = g.syncId ??
             _uuid.v5(
               _namespaceMigration,
-              '${userPrefix}gender:${g.id}:$langKey:${g.gender.trim().toLowerCase()}',
+              '${userPrefix}gender:${g.id}:${g.gender.trim().toLowerCase()}',
             );
         await (dB.update(dB.genders)..where((t) => t.id.equals(g.id))).write(
           GendersCompanion(
             syncId: Value(deterministicSyncId),
             lastModified: Value(g.lastModified ?? now),
+          ),
+        );
+      }
+    }
+    for (final lg in await getAllLanguageGenders()) {
+      if (lg.syncId == null || lg.lastModified == null) {
+        final lang = await (dB.select(dB.languages)
+              ..where((l) => l.id.equals(lg.language)))
+            .getSingleOrNull();
+        final gender = await (dB.select(dB.genders)
+              ..where((g) => g.id.equals(lg.gender)))
+            .getSingleOrNull();
+        final langKey = lang?.syncId ?? lg.language.toString();
+        final genderKey = gender?.syncId ?? lg.gender.toString();
+        final deterministicSyncId = lg.syncId ??
+            _uuid.v5(
+              _namespaceMigration,
+              '${userPrefix}language_gender:${lg.id}:$langKey:$genderKey',
+            );
+        await (dB.update(dB.languageGenders)..where((t) => t.id.equals(lg.id)))
+            .write(
+          LanguageGendersCompanion(
+            syncId: Value(deterministicSyncId),
+            lastModified: Value(lg.lastModified ?? now),
           ),
         );
       }
@@ -538,6 +639,7 @@ class DatabaseService {
 
   Future<void> clearLocalRecords() async {
     await dB.delete(dB.cards).go();
+    await dB.delete(dB.languageGenders).go();
     await dB.delete(dB.genders).go();
     await dB.delete(dB.categories).go();
     await dB.delete(dB.languages).go();

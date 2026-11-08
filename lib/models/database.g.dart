@@ -1210,6 +1210,268 @@ class $GendersTable extends Genders with TableInfo<$GendersTable, Gender> {
       requiredDuringInsert: false,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _genderMeta = const VerificationMeta('gender');
+  @override
+  late final GeneratedColumn<String> gender = GeneratedColumn<String>(
+      'gender', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _syncIdMeta = const VerificationMeta('syncId');
+  @override
+  late final GeneratedColumn<String> syncId = GeneratedColumn<String>(
+      'sync_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lastModifiedMeta =
+      const VerificationMeta('lastModified');
+  @override
+  late final GeneratedColumn<DateTime> lastModified = GeneratedColumn<DateTime>(
+      'last_modified', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [id, gender, syncId, lastModified];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'genders';
+  @override
+  VerificationContext validateIntegrity(Insertable<Gender> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('gender')) {
+      context.handle(_genderMeta,
+          gender.isAcceptableOrUnknown(data['gender']!, _genderMeta));
+    } else if (isInserting) {
+      context.missing(_genderMeta);
+    }
+    if (data.containsKey('sync_id')) {
+      context.handle(_syncIdMeta,
+          syncId.isAcceptableOrUnknown(data['sync_id']!, _syncIdMeta));
+    }
+    if (data.containsKey('last_modified')) {
+      context.handle(
+          _lastModifiedMeta,
+          lastModified.isAcceptableOrUnknown(
+              data['last_modified']!, _lastModifiedMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Gender map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Gender(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      gender: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}gender'])!,
+      syncId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sync_id']),
+      lastModified: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}last_modified']),
+    );
+  }
+
+  @override
+  $GendersTable createAlias(String alias) {
+    return $GendersTable(attachedDatabase, alias);
+  }
+}
+
+class Gender extends DataClass implements Insertable<Gender> {
+  final int id;
+  final String gender;
+  final String? syncId;
+  final DateTime? lastModified;
+  const Gender(
+      {required this.id, required this.gender, this.syncId, this.lastModified});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['gender'] = Variable<String>(gender);
+    if (!nullToAbsent || syncId != null) {
+      map['sync_id'] = Variable<String>(syncId);
+    }
+    if (!nullToAbsent || lastModified != null) {
+      map['last_modified'] = Variable<DateTime>(lastModified);
+    }
+    return map;
+  }
+
+  GendersCompanion toCompanion(bool nullToAbsent) {
+    return GendersCompanion(
+      id: Value(id),
+      gender: Value(gender),
+      syncId:
+          syncId == null && nullToAbsent ? const Value.absent() : Value(syncId),
+      lastModified: lastModified == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastModified),
+    );
+  }
+
+  factory Gender.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Gender(
+      id: serializer.fromJson<int>(json['id']),
+      gender: serializer.fromJson<String>(json['gender']),
+      syncId: serializer.fromJson<String?>(json['syncId']),
+      lastModified: serializer.fromJson<DateTime?>(json['lastModified']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'gender': serializer.toJson<String>(gender),
+      'syncId': serializer.toJson<String?>(syncId),
+      'lastModified': serializer.toJson<DateTime?>(lastModified),
+    };
+  }
+
+  Gender copyWith(
+          {int? id,
+          String? gender,
+          Value<String?> syncId = const Value.absent(),
+          Value<DateTime?> lastModified = const Value.absent()}) =>
+      Gender(
+        id: id ?? this.id,
+        gender: gender ?? this.gender,
+        syncId: syncId.present ? syncId.value : this.syncId,
+        lastModified:
+            lastModified.present ? lastModified.value : this.lastModified,
+      );
+  Gender copyWithCompanion(GendersCompanion data) {
+    return Gender(
+      id: data.id.present ? data.id.value : this.id,
+      gender: data.gender.present ? data.gender.value : this.gender,
+      syncId: data.syncId.present ? data.syncId.value : this.syncId,
+      lastModified: data.lastModified.present
+          ? data.lastModified.value
+          : this.lastModified,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Gender(')
+          ..write('id: $id, ')
+          ..write('gender: $gender, ')
+          ..write('syncId: $syncId, ')
+          ..write('lastModified: $lastModified')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, gender, syncId, lastModified);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Gender &&
+          other.id == this.id &&
+          other.gender == this.gender &&
+          other.syncId == this.syncId &&
+          other.lastModified == this.lastModified);
+}
+
+class GendersCompanion extends UpdateCompanion<Gender> {
+  final Value<int> id;
+  final Value<String> gender;
+  final Value<String?> syncId;
+  final Value<DateTime?> lastModified;
+  const GendersCompanion({
+    this.id = const Value.absent(),
+    this.gender = const Value.absent(),
+    this.syncId = const Value.absent(),
+    this.lastModified = const Value.absent(),
+  });
+  GendersCompanion.insert({
+    this.id = const Value.absent(),
+    required String gender,
+    this.syncId = const Value.absent(),
+    this.lastModified = const Value.absent(),
+  }) : gender = Value(gender);
+  static Insertable<Gender> custom({
+    Expression<int>? id,
+    Expression<String>? gender,
+    Expression<String>? syncId,
+    Expression<DateTime>? lastModified,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (gender != null) 'gender': gender,
+      if (syncId != null) 'sync_id': syncId,
+      if (lastModified != null) 'last_modified': lastModified,
+    });
+  }
+
+  GendersCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? gender,
+      Value<String?>? syncId,
+      Value<DateTime?>? lastModified}) {
+    return GendersCompanion(
+      id: id ?? this.id,
+      gender: gender ?? this.gender,
+      syncId: syncId ?? this.syncId,
+      lastModified: lastModified ?? this.lastModified,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (gender.present) {
+      map['gender'] = Variable<String>(gender.value);
+    }
+    if (syncId.present) {
+      map['sync_id'] = Variable<String>(syncId.value);
+    }
+    if (lastModified.present) {
+      map['last_modified'] = Variable<DateTime>(lastModified.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GendersCompanion(')
+          ..write('id: $id, ')
+          ..write('gender: $gender, ')
+          ..write('syncId: $syncId, ')
+          ..write('lastModified: $lastModified')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LanguageGendersTable extends LanguageGenders
+    with TableInfo<$LanguageGendersTable, LanguageGender> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LanguageGendersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
   static const VerificationMeta _languageMeta =
       const VerificationMeta('language');
   @override
@@ -1221,9 +1483,12 @@ class $GendersTable extends Genders with TableInfo<$GendersTable, Gender> {
           GeneratedColumn.constraintIsAlways('REFERENCES languages (id)'));
   static const VerificationMeta _genderMeta = const VerificationMeta('gender');
   @override
-  late final GeneratedColumn<String> gender = GeneratedColumn<String>(
+  late final GeneratedColumn<int> gender = GeneratedColumn<int>(
       'gender', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES genders (id)'));
   static const VerificationMeta _syncIdMeta = const VerificationMeta('syncId');
   @override
   late final GeneratedColumn<String> syncId = GeneratedColumn<String>(
@@ -1242,9 +1507,9 @@ class $GendersTable extends Genders with TableInfo<$GendersTable, Gender> {
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'genders';
+  static const String $name = 'language_genders';
   @override
-  VerificationContext validateIntegrity(Insertable<Gender> instance,
+  VerificationContext validateIntegrity(Insertable<LanguageGender> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -1279,15 +1544,15 @@ class $GendersTable extends Genders with TableInfo<$GendersTable, Gender> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Gender map(Map<String, dynamic> data, {String? tablePrefix}) {
+  LanguageGender map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Gender(
+    return LanguageGender(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       language: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}language'])!,
       gender: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}gender'])!,
+          .read(DriftSqlType.int, data['${effectivePrefix}gender'])!,
       syncId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}sync_id']),
       lastModified: attachedDatabase.typeMapping
@@ -1296,18 +1561,18 @@ class $GendersTable extends Genders with TableInfo<$GendersTable, Gender> {
   }
 
   @override
-  $GendersTable createAlias(String alias) {
-    return $GendersTable(attachedDatabase, alias);
+  $LanguageGendersTable createAlias(String alias) {
+    return $LanguageGendersTable(attachedDatabase, alias);
   }
 }
 
-class Gender extends DataClass implements Insertable<Gender> {
+class LanguageGender extends DataClass implements Insertable<LanguageGender> {
   final int id;
   final int language;
-  final String gender;
+  final int gender;
   final String? syncId;
   final DateTime? lastModified;
-  const Gender(
+  const LanguageGender(
       {required this.id,
       required this.language,
       required this.gender,
@@ -1318,7 +1583,7 @@ class Gender extends DataClass implements Insertable<Gender> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['language'] = Variable<int>(language);
-    map['gender'] = Variable<String>(gender);
+    map['gender'] = Variable<int>(gender);
     if (!nullToAbsent || syncId != null) {
       map['sync_id'] = Variable<String>(syncId);
     }
@@ -1328,8 +1593,8 @@ class Gender extends DataClass implements Insertable<Gender> {
     return map;
   }
 
-  GendersCompanion toCompanion(bool nullToAbsent) {
-    return GendersCompanion(
+  LanguageGendersCompanion toCompanion(bool nullToAbsent) {
+    return LanguageGendersCompanion(
       id: Value(id),
       language: Value(language),
       gender: Value(gender),
@@ -1341,13 +1606,13 @@ class Gender extends DataClass implements Insertable<Gender> {
     );
   }
 
-  factory Gender.fromJson(Map<String, dynamic> json,
+  factory LanguageGender.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Gender(
+    return LanguageGender(
       id: serializer.fromJson<int>(json['id']),
       language: serializer.fromJson<int>(json['language']),
-      gender: serializer.fromJson<String>(json['gender']),
+      gender: serializer.fromJson<int>(json['gender']),
       syncId: serializer.fromJson<String?>(json['syncId']),
       lastModified: serializer.fromJson<DateTime?>(json['lastModified']),
     );
@@ -1358,19 +1623,19 @@ class Gender extends DataClass implements Insertable<Gender> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'language': serializer.toJson<int>(language),
-      'gender': serializer.toJson<String>(gender),
+      'gender': serializer.toJson<int>(gender),
       'syncId': serializer.toJson<String?>(syncId),
       'lastModified': serializer.toJson<DateTime?>(lastModified),
     };
   }
 
-  Gender copyWith(
+  LanguageGender copyWith(
           {int? id,
           int? language,
-          String? gender,
+          int? gender,
           Value<String?> syncId = const Value.absent(),
           Value<DateTime?> lastModified = const Value.absent()}) =>
-      Gender(
+      LanguageGender(
         id: id ?? this.id,
         language: language ?? this.language,
         gender: gender ?? this.gender,
@@ -1378,8 +1643,8 @@ class Gender extends DataClass implements Insertable<Gender> {
         lastModified:
             lastModified.present ? lastModified.value : this.lastModified,
       );
-  Gender copyWithCompanion(GendersCompanion data) {
-    return Gender(
+  LanguageGender copyWithCompanion(LanguageGendersCompanion data) {
+    return LanguageGender(
       id: data.id.present ? data.id.value : this.id,
       language: data.language.present ? data.language.value : this.language,
       gender: data.gender.present ? data.gender.value : this.gender,
@@ -1392,7 +1657,7 @@ class Gender extends DataClass implements Insertable<Gender> {
 
   @override
   String toString() {
-    return (StringBuffer('Gender(')
+    return (StringBuffer('LanguageGender(')
           ..write('id: $id, ')
           ..write('language: $language, ')
           ..write('gender: $gender, ')
@@ -1407,7 +1672,7 @@ class Gender extends DataClass implements Insertable<Gender> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Gender &&
+      (other is LanguageGender &&
           other.id == this.id &&
           other.language == this.language &&
           other.gender == this.gender &&
@@ -1415,31 +1680,31 @@ class Gender extends DataClass implements Insertable<Gender> {
           other.lastModified == this.lastModified);
 }
 
-class GendersCompanion extends UpdateCompanion<Gender> {
+class LanguageGendersCompanion extends UpdateCompanion<LanguageGender> {
   final Value<int> id;
   final Value<int> language;
-  final Value<String> gender;
+  final Value<int> gender;
   final Value<String?> syncId;
   final Value<DateTime?> lastModified;
-  const GendersCompanion({
+  const LanguageGendersCompanion({
     this.id = const Value.absent(),
     this.language = const Value.absent(),
     this.gender = const Value.absent(),
     this.syncId = const Value.absent(),
     this.lastModified = const Value.absent(),
   });
-  GendersCompanion.insert({
+  LanguageGendersCompanion.insert({
     this.id = const Value.absent(),
     required int language,
-    required String gender,
+    required int gender,
     this.syncId = const Value.absent(),
     this.lastModified = const Value.absent(),
   })  : language = Value(language),
         gender = Value(gender);
-  static Insertable<Gender> custom({
+  static Insertable<LanguageGender> custom({
     Expression<int>? id,
     Expression<int>? language,
-    Expression<String>? gender,
+    Expression<int>? gender,
     Expression<String>? syncId,
     Expression<DateTime>? lastModified,
   }) {
@@ -1452,13 +1717,13 @@ class GendersCompanion extends UpdateCompanion<Gender> {
     });
   }
 
-  GendersCompanion copyWith(
+  LanguageGendersCompanion copyWith(
       {Value<int>? id,
       Value<int>? language,
-      Value<String>? gender,
+      Value<int>? gender,
       Value<String?>? syncId,
       Value<DateTime?>? lastModified}) {
-    return GendersCompanion(
+    return LanguageGendersCompanion(
       id: id ?? this.id,
       language: language ?? this.language,
       gender: gender ?? this.gender,
@@ -1477,7 +1742,7 @@ class GendersCompanion extends UpdateCompanion<Gender> {
       map['language'] = Variable<int>(language.value);
     }
     if (gender.present) {
-      map['gender'] = Variable<String>(gender.value);
+      map['gender'] = Variable<int>(gender.value);
     }
     if (syncId.present) {
       map['sync_id'] = Variable<String>(syncId.value);
@@ -1490,7 +1755,7 @@ class GendersCompanion extends UpdateCompanion<Gender> {
 
   @override
   String toString() {
-    return (StringBuffer('GendersCompanion(')
+    return (StringBuffer('LanguageGendersCompanion(')
           ..write('id: $id, ')
           ..write('language: $language, ')
           ..write('gender: $gender, ')
@@ -1771,13 +2036,15 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $CardsTable cards = $CardsTable(this);
   late final $GendersTable genders = $GendersTable(this);
+  late final $LanguageGendersTable languageGenders =
+      $LanguageGendersTable(this);
   late final $DeletedRecordsTable deletedRecords = $DeletedRecordsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [languages, categories, cards, genders, deletedRecords];
+      [languages, categories, cards, genders, languageGenders, deletedRecords];
 }
 
 typedef $$LanguagesTableCreateCompanionBuilder = LanguagesCompanion Function({
@@ -1811,16 +2078,18 @@ final class $$LanguagesTableReferences
         manager.$state.copyWith(prefetchedData: cache));
   }
 
-  static MultiTypedResultKey<$GendersTable, List<Gender>> _gendersRefsTable(
-          _$AppDatabase db) =>
-      MultiTypedResultKey.fromTable(db.genders,
-          aliasName: 'languages__id__genders__language');
+  static MultiTypedResultKey<$LanguageGendersTable, List<LanguageGender>>
+      _languageGendersRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.languageGenders,
+              aliasName: 'languages__id__language_genders__language');
 
-  $$GendersTableProcessedTableManager get gendersRefs {
-    final manager = $$GendersTableTableManager($_db, $_db.genders)
-        .filter((f) => f.language.id.sqlEquals($_itemColumn<int>('id')!));
+  $$LanguageGendersTableProcessedTableManager get languageGendersRefs {
+    final manager =
+        $$LanguageGendersTableTableManager($_db, $_db.languageGenders)
+            .filter((f) => f.language.id.sqlEquals($_itemColumn<int>('id')!));
 
-    final cache = $_typedResult.readTableOrNull(_gendersRefsTable($_db));
+    final cache =
+        $_typedResult.readTableOrNull(_languageGendersRefsTable($_db));
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
@@ -1868,19 +2137,19 @@ class $$LanguagesTableFilterComposer
     return f(composer);
   }
 
-  Expression<bool> gendersRefs(
-      Expression<bool> Function($$GendersTableFilterComposer f) f) {
-    final $$GendersTableFilterComposer composer = $composerBuilder(
+  Expression<bool> languageGendersRefs(
+      Expression<bool> Function($$LanguageGendersTableFilterComposer f) f) {
+    final $$LanguageGendersTableFilterComposer composer = $composerBuilder(
         composer: this,
         getCurrentColumn: (t) => t.id,
-        referencedTable: $db.genders,
+        referencedTable: $db.languageGenders,
         getReferencedColumn: (t) => t.language,
         builder: (joinBuilder,
                 {$addJoinBuilderToRootComposer,
                 $removeJoinBuilderFromRootComposer}) =>
-            $$GendersTableFilterComposer(
+            $$LanguageGendersTableFilterComposer(
               $db: $db,
-              $table: $db.genders,
+              $table: $db.languageGenders,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -1955,19 +2224,19 @@ class $$LanguagesTableAnnotationComposer
     return f(composer);
   }
 
-  Expression<T> gendersRefs<T extends Object>(
-      Expression<T> Function($$GendersTableAnnotationComposer a) f) {
-    final $$GendersTableAnnotationComposer composer = $composerBuilder(
+  Expression<T> languageGendersRefs<T extends Object>(
+      Expression<T> Function($$LanguageGendersTableAnnotationComposer a) f) {
+    final $$LanguageGendersTableAnnotationComposer composer = $composerBuilder(
         composer: this,
         getCurrentColumn: (t) => t.id,
-        referencedTable: $db.genders,
+        referencedTable: $db.languageGenders,
         getReferencedColumn: (t) => t.language,
         builder: (joinBuilder,
                 {$addJoinBuilderToRootComposer,
                 $removeJoinBuilderFromRootComposer}) =>
-            $$GendersTableAnnotationComposer(
+            $$LanguageGendersTableAnnotationComposer(
               $db: $db,
-              $table: $db.genders,
+              $table: $db.languageGenders,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -1988,7 +2257,7 @@ class $$LanguagesTableTableManager extends RootTableManager<
     $$LanguagesTableUpdateCompanionBuilder,
     (Language, $$LanguagesTableReferences),
     Language,
-    PrefetchHooks Function({bool cardsRefs, bool gendersRefs})> {
+    PrefetchHooks Function({bool cardsRefs, bool languageGendersRefs})> {
   $$LanguagesTableTableManager(_$AppDatabase db, $LanguagesTable table)
       : super(TableManagerState(
           db: db,
@@ -2029,12 +2298,13 @@ class $$LanguagesTableTableManager extends RootTableManager<
                     $$LanguagesTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({cardsRefs = false, gendersRefs = false}) {
+          prefetchHooksCallback: (
+              {cardsRefs = false, languageGendersRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (cardsRefs) db.cards,
-                if (gendersRefs) db.genders
+                if (languageGendersRefs) db.languageGenders
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
@@ -2050,15 +2320,15 @@ class $$LanguagesTableTableManager extends RootTableManager<
                                 referencedItems) =>
                             referencedItems.where((e) => e.language == item.id),
                         typedResults: items),
-                  if (gendersRefs)
+                  if (languageGendersRefs)
                     await $_getPrefetchedData<Language, $LanguagesTable,
-                            Gender>(
+                            LanguageGender>(
                         currentTable: table,
-                        referencedTable:
-                            $$LanguagesTableReferences._gendersRefsTable(db),
+                        referencedTable: $$LanguagesTableReferences
+                            ._languageGendersRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$LanguagesTableReferences(db, table, p0)
-                                .gendersRefs,
+                                .languageGendersRefs,
                         referencedItemsForCurrentItem: (item,
                                 referencedItems) =>
                             referencedItems.where((e) => e.language == item.id),
@@ -2081,7 +2351,7 @@ typedef $$LanguagesTableProcessedTableManager = ProcessedTableManager<
     $$LanguagesTableUpdateCompanionBuilder,
     (Language, $$LanguagesTableReferences),
     Language,
-    PrefetchHooks Function({bool cardsRefs, bool gendersRefs})>;
+    PrefetchHooks Function({bool cardsRefs, bool languageGendersRefs})>;
 typedef $$CategoriesTableCreateCompanionBuilder = CategoriesCompanion Function({
   Value<int> id,
   required String category,
@@ -2779,14 +3049,12 @@ typedef $$CardsTableProcessedTableManager = ProcessedTableManager<
     PrefetchHooks Function({bool language, bool category})>;
 typedef $$GendersTableCreateCompanionBuilder = GendersCompanion Function({
   Value<int> id,
-  required int language,
   required String gender,
   Value<String?> syncId,
   Value<DateTime?> lastModified,
 });
 typedef $$GendersTableUpdateCompanionBuilder = GendersCompanion Function({
   Value<int> id,
-  Value<int> language,
   Value<String> gender,
   Value<String?> syncId,
   Value<DateTime?> lastModified,
@@ -2796,18 +3064,20 @@ final class $$GendersTableReferences
     extends BaseReferences<_$AppDatabase, $GendersTable, Gender> {
   $$GendersTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $LanguagesTable _languageTable(_$AppDatabase db) =>
-      db.languages.createAlias('genders__language__languages__id');
+  static MultiTypedResultKey<$LanguageGendersTable, List<LanguageGender>>
+      _languageGendersRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.languageGenders,
+              aliasName: 'genders__id__language_genders__gender');
 
-  $$LanguagesTableProcessedTableManager get language {
-    final $_column = $_itemColumn<int>('language')!;
+  $$LanguageGendersTableProcessedTableManager get languageGendersRefs {
+    final manager =
+        $$LanguageGendersTableTableManager($_db, $_db.languageGenders)
+            .filter((f) => f.gender.id.sqlEquals($_itemColumn<int>('id')!));
 
-    final manager = $$LanguagesTableTableManager($_db, $_db.languages)
-        .filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_languageTable($_db));
-    if (item == null) return manager;
+    final cache =
+        $_typedResult.readTableOrNull(_languageGendersRefsTable($_db));
     return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
+        manager.$state.copyWith(prefetchedData: cache));
   }
 }
 
@@ -2825,6 +3095,256 @@ class $$GendersTableFilterComposer
 
   ColumnFilters<String> get gender => $composableBuilder(
       column: $table.gender, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get syncId => $composableBuilder(
+      column: $table.syncId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> languageGendersRefs(
+      Expression<bool> Function($$LanguageGendersTableFilterComposer f) f) {
+    final $$LanguageGendersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.languageGenders,
+        getReferencedColumn: (t) => t.gender,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LanguageGendersTableFilterComposer(
+              $db: $db,
+              $table: $db.languageGenders,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$GendersTableOrderingComposer
+    extends Composer<_$AppDatabase, $GendersTable> {
+  $$GendersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get gender => $composableBuilder(
+      column: $table.gender, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get syncId => $composableBuilder(
+      column: $table.syncId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$GendersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GendersTable> {
+  $$GendersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get gender =>
+      $composableBuilder(column: $table.gender, builder: (column) => column);
+
+  GeneratedColumn<String> get syncId =>
+      $composableBuilder(column: $table.syncId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastModified => $composableBuilder(
+      column: $table.lastModified, builder: (column) => column);
+
+  Expression<T> languageGendersRefs<T extends Object>(
+      Expression<T> Function($$LanguageGendersTableAnnotationComposer a) f) {
+    final $$LanguageGendersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.languageGenders,
+        getReferencedColumn: (t) => t.gender,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LanguageGendersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.languageGenders,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$GendersTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $GendersTable,
+    Gender,
+    $$GendersTableFilterComposer,
+    $$GendersTableOrderingComposer,
+    $$GendersTableAnnotationComposer,
+    $$GendersTableCreateCompanionBuilder,
+    $$GendersTableUpdateCompanionBuilder,
+    (Gender, $$GendersTableReferences),
+    Gender,
+    PrefetchHooks Function({bool languageGendersRefs})> {
+  $$GendersTableTableManager(_$AppDatabase db, $GendersTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GendersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GendersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GendersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> gender = const Value.absent(),
+            Value<String?> syncId = const Value.absent(),
+            Value<DateTime?> lastModified = const Value.absent(),
+          }) =>
+              GendersCompanion(
+            id: id,
+            gender: gender,
+            syncId: syncId,
+            lastModified: lastModified,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String gender,
+            Value<String?> syncId = const Value.absent(),
+            Value<DateTime?> lastModified = const Value.absent(),
+          }) =>
+              GendersCompanion.insert(
+            id: id,
+            gender: gender,
+            syncId: syncId,
+            lastModified: lastModified,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$GendersTable, Gender>(table),
+                    $$GendersTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({languageGendersRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (languageGendersRefs) db.languageGenders
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (languageGendersRefs)
+                    await $_getPrefetchedData<Gender, $GendersTable,
+                            LanguageGender>(
+                        currentTable: table,
+                        referencedTable: $$GendersTableReferences
+                            ._languageGendersRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$GendersTableReferences(db, table, p0)
+                                .languageGendersRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.gender == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$GendersTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $GendersTable,
+    Gender,
+    $$GendersTableFilterComposer,
+    $$GendersTableOrderingComposer,
+    $$GendersTableAnnotationComposer,
+    $$GendersTableCreateCompanionBuilder,
+    $$GendersTableUpdateCompanionBuilder,
+    (Gender, $$GendersTableReferences),
+    Gender,
+    PrefetchHooks Function({bool languageGendersRefs})>;
+typedef $$LanguageGendersTableCreateCompanionBuilder = LanguageGendersCompanion
+    Function({
+  Value<int> id,
+  required int language,
+  required int gender,
+  Value<String?> syncId,
+  Value<DateTime?> lastModified,
+});
+typedef $$LanguageGendersTableUpdateCompanionBuilder = LanguageGendersCompanion
+    Function({
+  Value<int> id,
+  Value<int> language,
+  Value<int> gender,
+  Value<String?> syncId,
+  Value<DateTime?> lastModified,
+});
+
+final class $$LanguageGendersTableReferences extends BaseReferences<
+    _$AppDatabase, $LanguageGendersTable, LanguageGender> {
+  $$LanguageGendersTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $LanguagesTable _languageTable(_$AppDatabase db) =>
+      db.languages.createAlias('language_genders__language__languages__id');
+
+  $$LanguagesTableProcessedTableManager get language {
+    final $_column = $_itemColumn<int>('language')!;
+
+    final manager = $$LanguagesTableTableManager($_db, $_db.languages)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_languageTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $GendersTable _genderTable(_$AppDatabase db) =>
+      db.genders.createAlias('language_genders__gender__genders__id');
+
+  $$GendersTableProcessedTableManager get gender {
+    final $_column = $_itemColumn<int>('gender')!;
+
+    final manager = $$GendersTableTableManager($_db, $_db.genders)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_genderTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$LanguageGendersTableFilterComposer
+    extends Composer<_$AppDatabase, $LanguageGendersTable> {
+  $$LanguageGendersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get syncId => $composableBuilder(
       column: $table.syncId, builder: (column) => ColumnFilters(column));
@@ -2851,11 +3371,31 @@ class $$GendersTableFilterComposer
             ));
     return composer;
   }
+
+  $$GendersTableFilterComposer get gender {
+    final $$GendersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.gender,
+        referencedTable: $db.genders,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$GendersTableFilterComposer(
+              $db: $db,
+              $table: $db.genders,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
-class $$GendersTableOrderingComposer
-    extends Composer<_$AppDatabase, $GendersTable> {
-  $$GendersTableOrderingComposer({
+class $$LanguageGendersTableOrderingComposer
+    extends Composer<_$AppDatabase, $LanguageGendersTable> {
+  $$LanguageGendersTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2864,9 +3404,6 @@ class $$GendersTableOrderingComposer
   });
   ColumnOrderings<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get gender => $composableBuilder(
-      column: $table.gender, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get syncId => $composableBuilder(
       column: $table.syncId, builder: (column) => ColumnOrderings(column));
@@ -2894,11 +3431,31 @@ class $$GendersTableOrderingComposer
             ));
     return composer;
   }
+
+  $$GendersTableOrderingComposer get gender {
+    final $$GendersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.gender,
+        referencedTable: $db.genders,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$GendersTableOrderingComposer(
+              $db: $db,
+              $table: $db.genders,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
-class $$GendersTableAnnotationComposer
-    extends Composer<_$AppDatabase, $GendersTable> {
-  $$GendersTableAnnotationComposer({
+class $$LanguageGendersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LanguageGendersTable> {
+  $$LanguageGendersTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2907,9 +3464,6 @@ class $$GendersTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get gender =>
-      $composableBuilder(column: $table.gender, builder: (column) => column);
 
   GeneratedColumn<String> get syncId =>
       $composableBuilder(column: $table.syncId, builder: (column) => column);
@@ -2936,38 +3490,59 @@ class $$GendersTableAnnotationComposer
             ));
     return composer;
   }
+
+  $$GendersTableAnnotationComposer get gender {
+    final $$GendersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.gender,
+        referencedTable: $db.genders,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$GendersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.genders,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
-class $$GendersTableTableManager extends RootTableManager<
+class $$LanguageGendersTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $GendersTable,
-    Gender,
-    $$GendersTableFilterComposer,
-    $$GendersTableOrderingComposer,
-    $$GendersTableAnnotationComposer,
-    $$GendersTableCreateCompanionBuilder,
-    $$GendersTableUpdateCompanionBuilder,
-    (Gender, $$GendersTableReferences),
-    Gender,
-    PrefetchHooks Function({bool language})> {
-  $$GendersTableTableManager(_$AppDatabase db, $GendersTable table)
+    $LanguageGendersTable,
+    LanguageGender,
+    $$LanguageGendersTableFilterComposer,
+    $$LanguageGendersTableOrderingComposer,
+    $$LanguageGendersTableAnnotationComposer,
+    $$LanguageGendersTableCreateCompanionBuilder,
+    $$LanguageGendersTableUpdateCompanionBuilder,
+    (LanguageGender, $$LanguageGendersTableReferences),
+    LanguageGender,
+    PrefetchHooks Function({bool language, bool gender})> {
+  $$LanguageGendersTableTableManager(
+      _$AppDatabase db, $LanguageGendersTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$GendersTableFilterComposer($db: db, $table: table),
+              $$LanguageGendersTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$GendersTableOrderingComposer($db: db, $table: table),
+              $$LanguageGendersTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$GendersTableAnnotationComposer($db: db, $table: table),
+              $$LanguageGendersTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<int> language = const Value.absent(),
-            Value<String> gender = const Value.absent(),
+            Value<int> gender = const Value.absent(),
             Value<String?> syncId = const Value.absent(),
             Value<DateTime?> lastModified = const Value.absent(),
           }) =>
-              GendersCompanion(
+              LanguageGendersCompanion(
             id: id,
             language: language,
             gender: gender,
@@ -2977,11 +3552,11 @@ class $$GendersTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required int language,
-            required String gender,
+            required int gender,
             Value<String?> syncId = const Value.absent(),
             Value<DateTime?> lastModified = const Value.absent(),
           }) =>
-              GendersCompanion.insert(
+              LanguageGendersCompanion.insert(
             id: id,
             language: language,
             gender: gender,
@@ -2990,11 +3565,11 @@ class $$GendersTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable<$GendersTable, Gender>(table),
-                    $$GendersTableReferences(db, table, e)
+                    e.readTable<$LanguageGendersTable, LanguageGender>(table),
+                    $$LanguageGendersTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({language = false}) {
+          prefetchHooksCallback: ({language = false, gender = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -3016,9 +3591,19 @@ class $$GendersTableTableManager extends RootTableManager<
                     currentTable: table,
                     currentColumn: table.language,
                     referencedTable:
-                        $$GendersTableReferences._languageTable(db),
+                        $$LanguageGendersTableReferences._languageTable(db),
                     referencedColumn:
-                        $$GendersTableReferences._languageTable(db).id,
+                        $$LanguageGendersTableReferences._languageTable(db).id,
+                  ) as T;
+                }
+                if (gender) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.gender,
+                    referencedTable:
+                        $$LanguageGendersTableReferences._genderTable(db),
+                    referencedColumn:
+                        $$LanguageGendersTableReferences._genderTable(db).id,
                   ) as T;
                 }
 
@@ -3032,18 +3617,18 @@ class $$GendersTableTableManager extends RootTableManager<
         ));
 }
 
-typedef $$GendersTableProcessedTableManager = ProcessedTableManager<
+typedef $$LanguageGendersTableProcessedTableManager = ProcessedTableManager<
     _$AppDatabase,
-    $GendersTable,
-    Gender,
-    $$GendersTableFilterComposer,
-    $$GendersTableOrderingComposer,
-    $$GendersTableAnnotationComposer,
-    $$GendersTableCreateCompanionBuilder,
-    $$GendersTableUpdateCompanionBuilder,
-    (Gender, $$GendersTableReferences),
-    Gender,
-    PrefetchHooks Function({bool language})>;
+    $LanguageGendersTable,
+    LanguageGender,
+    $$LanguageGendersTableFilterComposer,
+    $$LanguageGendersTableOrderingComposer,
+    $$LanguageGendersTableAnnotationComposer,
+    $$LanguageGendersTableCreateCompanionBuilder,
+    $$LanguageGendersTableUpdateCompanionBuilder,
+    (LanguageGender, $$LanguageGendersTableReferences),
+    LanguageGender,
+    PrefetchHooks Function({bool language, bool gender})>;
 typedef $$DeletedRecordsTableCreateCompanionBuilder = DeletedRecordsCompanion
     Function({
   Value<int> id,
@@ -3213,6 +3798,8 @@ class $AppDatabaseManager {
       $$CardsTableTableManager(_db, _db.cards);
   $$GendersTableTableManager get genders =>
       $$GendersTableTableManager(_db, _db.genders);
+  $$LanguageGendersTableTableManager get languageGenders =>
+      $$LanguageGendersTableTableManager(_db, _db.languageGenders);
   $$DeletedRecordsTableTableManager get deletedRecords =>
       $$DeletedRecordsTableTableManager(_db, _db.deletedRecords);
 }

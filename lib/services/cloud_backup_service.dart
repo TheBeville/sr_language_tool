@@ -93,6 +93,12 @@ class CloudBackupService {
               .delete()
               .eq('sync_id', d.syncId)
               .eq('user_id', userId);
+        } else if (d.recordTable == 'language_genders') {
+          await supabase
+              .from('language_genders')
+              .delete()
+              .eq('sync_id', d.syncId)
+              .eq('user_id', userId);
         } else if (d.recordTable == 'genders') {
           await supabase
               .from('genders')
@@ -123,6 +129,7 @@ class CloudBackupService {
     final remoteDeletions =
         List<Map<String, dynamic>>.from(remoteDeletionsRaw as List);
     final cardsDeletions = <String>[];
+    final languageGendersDeletions = <String>[];
     final gendersDeletions = <String>[];
     final categoriesDeletions = <String>[];
     final languagesDeletions = <String>[];
@@ -132,6 +139,8 @@ class CloudBackupService {
       final tableName = remoteDel['table_name'] as String;
       if (tableName == 'cards') {
         cardsDeletions.add(syncId);
+      } else if (tableName == 'language_genders') {
+        languageGendersDeletions.add(syncId);
       } else if (tableName == 'genders') {
         gendersDeletions.add(syncId);
       } else if (tableName == 'categories') {
@@ -144,6 +153,11 @@ class CloudBackupService {
     await appDb.transaction(() async {
       for (final syncId in cardsDeletions) {
         await (appDb.delete(appDb.cards)..where((t) => t.syncId.equals(syncId)))
+            .go();
+      }
+      for (final syncId in languageGendersDeletions) {
+        await (appDb.delete(appDb.languageGenders)
+              ..where((t) => t.syncId.equals(syncId)))
             .go();
       }
       for (final syncId in gendersDeletions) {
@@ -379,15 +393,12 @@ class CloudBackupService {
     final newGendersToInsert = <Map<String, dynamic>>[];
     for (final local in localGenders) {
       final remote = remoteGenderBySyncId[local.syncId];
-      final langSyncId = langSyncIdById[local.language];
-      if (langSyncId == null) continue;
 
       if (remote == null) {
         newGendersToInsert.add({
           'sync_id': local.syncId,
           'id': local.id,
           'user_id': userId,
-          'language_sync_id': langSyncId,
           'gender': local.gender,
           'last_modified': local.lastModified!.toIso8601String(),
         });
@@ -398,7 +409,6 @@ class CloudBackupService {
               .from('genders')
               .update({
                 'gender': local.gender,
-                'language_sync_id': langSyncId,
                 'last_modified': local.lastModified!.toIso8601String(),
               })
               .eq('sync_id', local.syncId!)
@@ -418,13 +428,10 @@ class CloudBackupService {
       final syncId = remote['sync_id'] as String;
       final local = localGenderBySyncId[syncId];
       final remoteMod = DateTime.parse(remote['last_modified'] as String);
-      final localLangId = langIdBySyncId[remote['language_sync_id'] as String];
-      if (localLangId == null) continue;
 
       if (local == null) {
         await appDb.into(appDb.genders).insert(
               db.GendersCompanion.insert(
-                language: localLangId,
                 gender: remote['gender'] as String,
                 syncId: Value(syncId),
                 lastModified: Value(remoteMod),
@@ -436,7 +443,104 @@ class CloudBackupService {
             .write(
           db.GendersCompanion(
             gender: Value(remote['gender'] as String),
+            lastModified: Value(remoteMod),
+          ),
+        );
+      }
+    }
+
+    // Refresh local cache for gender lookups
+    final freshLocalGenders = await _dbService.getAllGenders();
+    final genderIdBySyncId = {
+      for (final g in freshLocalGenders)
+        if (g.syncId != null) g.syncId!: g.id,
+    };
+    final genderSyncIdById = {
+      for (final g in freshLocalGenders)
+        if (g.syncId != null) g.id: g.syncId!,
+    };
+
+    // ------------------------------------------------------------- //
+    // 4. LANGUAGE_GENDERS SYNC
+    // ------------------------------------------------------------- //
+    final remoteLangGendersRaw =
+        await supabase.from('language_genders').select().eq('user_id', userId);
+    final remoteLangGenders =
+        List<Map<String, dynamic>>.from(remoteLangGendersRaw as List);
+    final localLangGenders = await _dbService.getAllLanguageGenders();
+
+    final localLangGenderBySyncId = {
+      for (final lg in localLangGenders)
+        if (lg.syncId != null) lg.syncId!: lg,
+    };
+    final remoteLangGenderBySyncId = {
+      for (final r in remoteLangGenders) r['sync_id'] as String: r,
+    };
+
+    final newLangGendersToInsert = <Map<String, dynamic>>[];
+    for (final local in localLangGenders) {
+      final remote = remoteLangGenderBySyncId[local.syncId];
+      final langSyncId = langSyncIdById[local.language];
+      final genderSyncId = genderSyncIdById[local.gender];
+      if (langSyncId == null || genderSyncId == null) continue;
+
+      if (remote == null) {
+        newLangGendersToInsert.add({
+          'sync_id': local.syncId,
+          'id': local.id,
+          'user_id': userId,
+          'language_sync_id': langSyncId,
+          'gender_sync_id': genderSyncId,
+          'last_modified': local.lastModified!.toIso8601String(),
+        });
+      } else {
+        final remoteMod = DateTime.parse(remote['last_modified'] as String);
+        if (local.lastModified!.isAfter(remoteMod)) {
+          await supabase
+              .from('language_genders')
+              .update({
+                'language_sync_id': langSyncId,
+                'gender_sync_id': genderSyncId,
+                'last_modified': local.lastModified!.toIso8601String(),
+              })
+              .eq('sync_id', local.syncId!)
+              .eq('user_id', userId)
+              .lt('last_modified', local.lastModified!.toIso8601String());
+        }
+      }
+    }
+    if (newLangGendersToInsert.isNotEmpty) {
+      await supabase.from('language_genders').upsert(
+            newLangGendersToInsert,
+            onConflict: 'sync_id',
+          );
+    }
+
+    for (final remote in remoteLangGenders) {
+      final syncId = remote['sync_id'] as String;
+      final local = localLangGenderBySyncId[syncId];
+      final remoteMod = DateTime.parse(remote['last_modified'] as String);
+      final localLangId = langIdBySyncId[remote['language_sync_id'] as String];
+      final localGenderId =
+          genderIdBySyncId[remote['gender_sync_id'] as String];
+      if (localLangId == null || localGenderId == null) continue;
+
+      if (local == null) {
+        await appDb.into(appDb.languageGenders).insert(
+              db.LanguageGendersCompanion.insert(
+                language: localLangId,
+                gender: localGenderId,
+                syncId: Value(syncId),
+                lastModified: Value(remoteMod),
+              ),
+            );
+      } else if (remoteMod.isAfter(local.lastModified!)) {
+        await (appDb.update(appDb.languageGenders)
+              ..where((t) => t.syncId.equals(syncId)))
+            .write(
+          db.LanguageGendersCompanion(
             language: Value(localLangId),
+            gender: Value(localGenderId),
             lastModified: Value(remoteMod),
           ),
         );
@@ -444,7 +548,7 @@ class CloudBackupService {
     }
 
     // ------------------------------------------------------------- //
-    // 4. CARDS SYNC
+    // 5. CARDS SYNC
     // ------------------------------------------------------------- //
     final remoteCardsRaw =
         await supabase.from('cards').select().eq('user_id', userId);

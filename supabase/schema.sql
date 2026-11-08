@@ -3,7 +3,7 @@
 -- sync_id (UUID) is the cross-device record identity and is the primary key.
 -- The local integer id is stored as data for reference.
 -- last_modified enables per-record last-write-wins conflict resolution.
--- Sync order: languages → categories → genders → cards (FK dependency).
+-- Sync order: languages → categories → genders → language_genders → cards (FK dependency).
 --
 -- Run this in the Supabase SQL editor before implementing sync logic.
 
@@ -58,13 +58,15 @@ END $$;
 -- ------------------------------------------------------------------ --
 
 CREATE TABLE IF NOT EXISTS public.genders (
-  sync_id          UUID        PRIMARY KEY,
-  id               BIGINT      NOT NULL,
-  user_id          UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  language_sync_id UUID        NOT NULL REFERENCES public.languages(sync_id) ON DELETE CASCADE,
-  gender           TEXT        NOT NULL,
-  last_modified    TIMESTAMPTZ NOT NULL
+  sync_id       UUID        PRIMARY KEY,
+  id            BIGINT      NOT NULL,
+  user_id       UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  gender        TEXT        NOT NULL,
+  last_modified TIMESTAMPTZ NOT NULL
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_genders_user_gender_lower
+  ON public.genders (user_id, LOWER(gender));
 
 ALTER TABLE public.genders ENABLE ROW LEVEL SECURITY;
 
@@ -73,6 +75,31 @@ DO $$ BEGIN
     SELECT 1 FROM pg_policies WHERE tablename = 'genders' AND policyname = 'users_own_genders'
   ) THEN
     CREATE POLICY "users_own_genders" ON public.genders
+      FOR ALL USING (auth.uid() = user_id);
+  END IF;
+END $$;
+
+-- ------------------------------------------------------------------ --
+-- language_genders (junction table for sharing genders across languages)
+-- ------------------------------------------------------------------ --
+
+CREATE TABLE IF NOT EXISTS public.language_genders (
+  sync_id          UUID        PRIMARY KEY,
+  id               BIGINT      NOT NULL,
+  user_id          UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  language_sync_id UUID        NOT NULL REFERENCES public.languages(sync_id) ON DELETE CASCADE,
+  gender_sync_id   UUID        NOT NULL REFERENCES public.genders(sync_id) ON DELETE CASCADE,
+  last_modified    TIMESTAMPTZ NOT NULL,
+  CONSTRAINT uq_language_gender UNIQUE (language_sync_id, gender_sync_id)
+);
+
+ALTER TABLE public.language_genders ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'language_genders' AND policyname = 'users_own_language_genders'
+  ) THEN
+    CREATE POLICY "users_own_language_genders" ON public.language_genders
       FOR ALL USING (auth.uid() = user_id);
   END IF;
 END $$;
